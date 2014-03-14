@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QMetaType>
 #include <exception>
+#include <QMutex>
 
 #include "UTILITYQT.h"
 
@@ -23,10 +24,17 @@ signals:
     void FrameCountVideo(int);
     void StateLoadVideo(bool);
     void StatePathVerified(bool);
+    void ImageROIFromVideo(QImage);
 public slots:
     void ReceiveValFrameActual(int ValuePosAct);
+    void UpdateAngleRotate(float angle);
+    void UpdateExtractROI(int X, int Y, int height, int width);
+    void UpdateResizeROI(int Height, int Width);
     void StopThread(bool value);
 private:
+    void ApplyRotate(cv::Mat &Src, cv::Mat &Dst, float angle);
+    void ExtractRegionROI(cv::Mat &Src, cv::Mat &Dst, cv::Rect &ROIR);
+    void ResizeImage(cv::Mat &Src, cv::Mat &Dst, int SH, int SW);
     int GetPosFrame;
     bool GetFrame;
     bool Stoped;
@@ -34,6 +42,15 @@ private:
     std::string PathVideoOCV;
     cv::VideoCapture *LoadVideo;
     QImage ImageVideo;
+    QImage ImageVideoROI;
+    QMutex lock;
+    float AngleRotate;
+    bool RotateNew;
+    cv::Rect ROIRec;
+    bool ExtractNew;
+    int HeightRROI;
+    int WidthRROI;
+    bool ResizeROINew;
 };
 
 

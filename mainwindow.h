@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QMessageBox>
 #include "LabelEventMouse.h"
 #include "UTILITYQT.h"
 #include "VideoLoadOCV_Thread.h"
@@ -19,6 +20,7 @@ public:
 public slots:
     void LoadVideoNow(void);
     void ReceiveImage(QImage ImaVideo);
+    void ReceiveImageROI(QImage ImaVideoROI);
     void ResizeVerticalSlider(int CountFrame);
     void NextFrameClick(void);
     void BackFrameClick(void);
@@ -26,6 +28,7 @@ public slots:
     void ReceivePosX(QString value);
 
     void FileSavePositivesDirImages(void);
+    void FileSaveNegativeDirImages(void);
 
     void EnablePos(void);
     void EnableNeg(void);
@@ -34,7 +37,13 @@ public slots:
     void StopVideo(void);
 
     void ChangeSpinBox(int dato);
+    void ClickRadioButtonBox(bool State);
+    void ClickSpinBoxBoxStatic(int Value);
+    void ChangeValueScrollBarAngle(int Value);
+    void UpdateRegionExtract(void);
 
+    void ClickChecbox(int Estado);
+    void ClickSpinBoxResize(int dato);
 protected:
     void closeEvent(QCloseEvent *event);
 private:
@@ -42,6 +51,7 @@ private:
     LabelEventMouse *LabelImagen;
     cv::Mat *imageD;
     QImage FrameD;
+    QImage FrameDROI;
     VIDEOLOADOCVTHREAD VideoLoadOCV;
     bool stopthread;
     QFile *WriteReadFileTXT;
@@ -49,12 +59,17 @@ private:
     QString DirFileTXT;
     QString ImageLocationAnt;
 
+    QString DirImagesNeg;
+    QString DirFileTXTNeg;
+    QString DirFileTXTNegHaar;
+    QString DirFileTXTNegSVM;
     int MaxFramesVideo;
     int posSlider;
 
     int datoAnt;
 
     void conexiones(void);
+    QMessageBox *msgBox;
 
 
 };
