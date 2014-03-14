@@ -224,7 +224,8 @@ void MainWindow::NextFrameClick(void)
 {
     int posAct=0;
     posAct=ui->verticalSliderVIDEO->sliderPosition();
-    posAct++;
+    posAct++;    
+    VideoLoadOCV.UpdateAngleRotate((float)ui->horizontalSliderAngle->value());
     if(posAct>MaxFramesVideo){
         posAct=MaxFramesVideo;
     }
