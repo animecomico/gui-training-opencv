@@ -135,10 +135,14 @@ void MainWindow::ClickSpinBoxBoxStatic(int Value)
 void MainWindow::ClickSpinBoxResize(int dato)
 {
     QSpinBox *spinBox = qobject_cast<QSpinBox *>(sender());
-    if(spinBox->objectName() == "spinBoxResHeight"){
-        VideoLoadOCV.UpdateResizeROI(dato, ui->spinBoxResWidth->value());
-    }else if(spinBox->objectName() == "spinBoxResWidth"){
-        VideoLoadOCV.UpdateResizeROI(ui->spinBoxResHeight->value(), dato);
+    if(ui->checkBoxResizeEXtract->isEnabled()){
+        if(ui->checkBoxResizeEXtract->isChecked()){
+            if(spinBox->objectName() == "spinBoxResHeight"){
+                VideoLoadOCV.UpdateResizeROI(dato, ui->spinBoxResWidth->value());
+            }else if(spinBox->objectName() == "spinBoxResWidth"){
+                VideoLoadOCV.UpdateResizeROI(ui->spinBoxResHeight->value(), dato);
+            }
+        }
     }
 }
 
@@ -284,8 +288,10 @@ void MainWindow::ReceivePosX(QString value)
 
 void MainWindow::UpdateRegionExtract(void)
 {
-    VideoLoadOCV.UpdateExtractROI(ui->labelPosXi->text().toInt(), ui->labelPosYi->text().toInt(),
-                                  ui->labelHeightBox->text().toInt(),ui->labelWidthBox->text().toInt());
+    if(ui->labelPosXi->text().toInt()!=0 && ui->labelPosYi->text().toInt()!=0){
+        VideoLoadOCV.UpdateExtractROI(ui->labelPosXi->text().toInt(), ui->labelPosYi->text().toInt(),
+                                      ui->labelHeightBox->text().toInt(),ui->labelWidthBox->text().toInt());
+    }
     if(ui->checkBoxResizeEXtract->isEnabled()){
         if(ui->checkBoxResizeEXtract->isChecked()){
             VideoLoadOCV.UpdateResizeROI(ui->spinBoxResHeight->value(), ui->spinBoxResWidth->value());
@@ -313,35 +319,55 @@ void MainWindow::FileSavePositivesDirImages(void)
 
        DirImages=dirNameImages;
        DirFileTXT=fileNameTXT;
+       DirFileTXTPosHaar = DirFileTXT;
+       DirFileTXTPosSVM = DirFileTXT;
+       DirFileTXTPosHaar.remove(DirFileTXTPosHaar.size()-4,4);
+       DirFileTXTPosHaar = DirFileTXTPosHaar + "_Haar.txt";
+       DirFileTXTPosSVM.remove(DirFileTXTPosSVM.size()-4,4);
+       DirFileTXTPosSVM = DirFileTXTPosSVM + "_SVM.txt";
 
        ui->lineEditTXTDir->setText(fileNameTXT);
        ui->lineEditImageDirOutput->setText(dirNameImages);
 
-       int contFilas=0;
-       QFile file(fileNameTXT);
-
-       //WriteReadFileTXT.open("fileNameTXT",QIODevice::ReadWrite | QIODevice::Text);
-       file.open(QIODevice::ReadWrite | QIODevice::Text);
-       QTextStream outStream(&file);
-
-
-
-       QString line;
-       while (!outStream.atEnd()){
-           line = outStream.readLine();
-           contFilas++;
+       if(ui->checkBoxHaar->isChecked()){
+           int contFilas=0;
+           QFile file(DirFileTXTPosHaar);
+           file.open(QIODevice::ReadWrite | QIODevice::Text);
+           QTextStream outStream(&file);
+           QString line;
+           while (!outStream.atEnd()){
+               line = outStream.readLine();
+               contFilas++;
+           }
+           ui->spinBoxINFOTXT->setValue(contFilas);
+           file.close();
        }
 
-       ui->spinBoxINFOTXT->setValue(contFilas);
+       if(ui->checkBoxSVM->isChecked()){
+           int contFilas=0;
+           QFile file(DirFileTXTPosSVM);
+           file.open(QIODevice::ReadWrite | QIODevice::Text);
+           QTextStream outStream(&file);
+           QString line;
+           while (!outStream.atEnd()){
+               line = outStream.readLine();
+               contFilas++;
+           }
+           ui->spinBoxINFOTXT->setValue(contFilas);
+           file.close();
+       }
 
-       //qDebug()<<"Lineas:  "<<cont;
-
-       /* Write the line to the file */
-       //outStream << "Victory!\n";
-       //outStream << "Victory2!\n";
-
-       /* Close the file */
-       file.close();
+//       int contFilas=0;
+//       QFile file(fileNameTXT);
+//       file.open(QIODevice::ReadWrite | QIODevice::Text);
+//       QTextStream outStream(&file);
+//       QString line;
+//       while (!outStream.atEnd()){
+//           line = outStream.readLine();
+//           contFilas++;
+//       }
+//       ui->spinBoxINFOTXT->setValue(contFilas);
+//       file.close();
   }
 }
 
@@ -409,19 +435,50 @@ void MainWindow::EnablePos(void)
 {
     ui->pushButtonNegativeDir->setEnabled(false);
     ui->pushButtonPositiveDir->setEnabled(true);
-    if(DirFileTXT.size()!=0){
-        int contFilas=0;
-        QFile file(DirFileTXT);
-        file.open(QIODevice::ReadWrite | QIODevice::Text);
-        QTextStream outStream(&file);
-        QString line;
-        while (!outStream.atEnd()){
-            line = outStream.readLine();
-            contFilas++;
+    if(ui->checkBoxHaar->isChecked()){
+        if(DirFileTXTPosHaar.size()!=0){
+            int contFilas=0;
+            QFile file(DirFileTXTPosHaar);
+            file.open(QIODevice::ReadWrite | QIODevice::Text);
+            QTextStream outStream(&file);
+            QString line;
+            while (!outStream.atEnd()){
+                line = outStream.readLine();
+                contFilas++;
+            }
+            ui->spinBoxINFOTXT->setValue(contFilas);
+            file.close();
         }
-        ui->spinBoxINFOTXT->setValue(contFilas);
-        file.close();
     }
+
+    if(ui->checkBoxSVM->isChecked()){
+        if(DirFileTXTPosSVM.size()!=0){
+            int contFilas=0;
+            QFile file(DirFileTXTPosSVM);
+            file.open(QIODevice::ReadWrite | QIODevice::Text);
+            QTextStream outStream(&file);
+            QString line;
+            while (!outStream.atEnd()){
+                line = outStream.readLine();
+                contFilas++;
+            }
+            ui->spinBoxINFOTXT->setValue(contFilas);
+            file.close();
+        }
+    }
+//    if(DirFileTXT.size()!=0){
+//        int contFilas=0;
+//        QFile file(DirFileTXT);
+//        file.open(QIODevice::ReadWrite | QIODevice::Text);
+//        QTextStream outStream(&file);
+//        QString line;
+//        while (!outStream.atEnd()){
+//            line = outStream.readLine();
+//            contFilas++;
+//        }
+//        ui->spinBoxINFOTXT->setValue(contFilas);
+//        file.close();
+//    }
 }
 
 void MainWindow::EnableNeg(void)
@@ -473,32 +530,45 @@ void MainWindow::ClickOK(void)
     QString FramePos=QString::number(ui->spinBoxINFOTXT->value());
     QString PosXini=ui->labelPosXi->text();
     QString PosYini=ui->labelPosYi->text();
+    QString AngleRotation = QString::number(ui->horizontalSliderAngle->value());
+    QString ResizeHeight = ui->spinBoxResHeight->text();
+    QString ResizeWidth = ui->spinBoxResWidth->text();
     QString HeightBox=ui->labelHeightBox->text();
     QString WidthBox=ui->labelWidthBox->text();
 
     if(ui->radioButtonPositive->isChecked()){
         QString ImageLocationFromUser = ui->lineEditImageDirOutput->text();
+        QString ImageLocationFromUser2 = ui->lineEditImageDirOutput->text();
         if(DirImages.size()!=0){
             if(DirFileTXT.size()!=0){
                    NamePos="/"+NamePos+FramePos+".png";
                    NameSVM="/"+NameSVM+FramePos+".png";
                    ImageLocalization=DirImages+NamePos;
-                   ImageLocalizationSVM=DirImages+NameSVM;
-                   ImageLocationFromUser = ImageLocationFromUser + NamePos;
+                   ImageLocalizationSVM=DirImages+NameSVM;                   
                    if(ImageLocationAnt!=ImageLocalization){
-                       QFile file(DirFileTXT);
-                       file.open(QIODevice::ReadWrite |QIODevice::Append | QIODevice::Text);
-                       QTextStream outStream(&file);
-
-                       //outStream <<ImageLocalization<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox<<"\n";
-                       outStream <<ImageLocationFromUser<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox<<"\n";
-
-                       file.close();
+//                       QFile file(DirFileTXT);
+//                       file.open(QIODevice::ReadWrite |QIODevice::Append | QIODevice::Text);
+//                       QTextStream outStream(&file);
+//                       outStream <<ImageLocationFromUser<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox<<"\n";
+//                       file.close();
                        if(ui->checkBoxHaar->isChecked()){
+                           ImageLocationFromUser = ImageLocationFromUser + NamePos;
                            FrameD.save(ImageLocalization,"png");
+                           QFile file(DirFileTXTPosHaar);
+                           file.open(QIODevice::ReadWrite |QIODevice::Append | QIODevice::Text);
+                           QTextStream outStream(&file);
+                           outStream <<ImageLocationFromUser<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox<<"\n";
+                           file.close();
                        }
                        if(ui->checkBoxSVM->isChecked()){
+                           ImageLocationFromUser2 = ImageLocationFromUser2 + NameSVM;
                            FrameDROI.save(ImageLocalizationSVM, "png");
+                           QFile file(DirFileTXTPosSVM);
+                           file.open(QIODevice::ReadWrite |QIODevice::Append | QIODevice::Text);
+                           QTextStream outStream(&file);
+                           outStream <<ImageLocationFromUser2<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox;
+                           outStream <<AngleRotation<<" "<<ResizeWidth<<" "<<ResizeHeight<<"\n";
+                           file.close();
                        }
                        ImageLocationAnt=ImageLocalization;
                    }
@@ -539,7 +609,8 @@ void MainWindow::ClickOK(void)
                             QFile file(DirFileTXTNegSVM);
                             file.open(QIODevice::ReadWrite |QIODevice::Append | QIODevice::Text);
                             QTextStream outStream(&file);
-                            outStream <<ImageLocationFromUser<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox<<"\n";
+                            outStream <<ImageLocationFromUser<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox;
+                            outStream <<AngleRotation<<" "<<ResizeWidth<<" "<<ResizeHeight<<"\n";
                             file.close();
                         }
                         ImageLocationAnt=ImageLocalization;

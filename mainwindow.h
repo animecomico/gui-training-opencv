@@ -57,6 +57,8 @@ private:
     QFile *WriteReadFileTXT;
     QString DirImages;
     QString DirFileTXT;
+    QString DirFileTXTPosHaar;
+    QString DirFileTXTPosSVM;
     QString ImageLocationAnt;
 
     QString DirImagesNeg;
