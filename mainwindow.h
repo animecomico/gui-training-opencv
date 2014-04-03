@@ -2,10 +2,20 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QProcess>
 #include <QMessageBox>
+#include <QFile>
 #include "LabelEventMouse.h"
 #include "UTILITYQT.h"
 #include "VideoLoadOCV_Thread.h"
+
+#if defined(WIN32)
+#define WINDOWSSO 1
+#endif
+
+#if defined(linux)
+#define LINUXSO 1
+#endif
 
 namespace Ui {
 class MainWindow;
@@ -17,6 +27,8 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+signals:
+    void EmitFinProccess(bool State);
 public slots:
     void LoadVideoNow(void);
     void ReceiveImage(QImage ImaVideo);
@@ -44,6 +56,11 @@ public slots:
 
     void ClickChecbox(int Estado);
     void ClickSpinBoxResize(int dato);
+
+    void ReceiveErrorProcess(unsigned char code);
+    void ErrorProcess(QProcess::ProcessError error);
+    void ProcessEnd(int exitCode, QProcess::ExitStatus exitStatus);
+    void InitProcessConv(bool state);
 protected:
     void closeEvent(QCloseEvent *event);
 private:
@@ -72,8 +89,9 @@ private:
 
     void conexiones(void);
     QMessageBox *msgBox;
-
-
+    QString FileNameLocation;
+    QProcess *VideoCodec;
+    QFile *FileConv;
 };
 
 #endif // MAINWINDOW_H

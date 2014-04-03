@@ -8,6 +8,7 @@ VIDEOLOADOCVTHREAD::VIDEOLOADOCVTHREAD(QThread *parent):QThread(parent)
     GetFrame=true;
     Stoped=false;
     LoadVideo=new cv::VideoCapture();
+    //LoadVideo->set(CV_CAP_PROP_FOURCC,CV_FOURCC('A', 'V', 'C', '1'));
 
     AngleRotate = 0;
     RotateNew = false;
@@ -16,6 +17,7 @@ VIDEOLOADOCVTHREAD::VIDEOLOADOCVTHREAD(QThread *parent):QThread(parent)
     HeightRROI = 100;
     WidthRROI = 100;
     ResizeROINew = false;
+    ConvEnd = false;
 }
 
 VIDEOLOADOCVTHREAD::~VIDEOLOADOCVTHREAD()
@@ -27,26 +29,47 @@ VIDEOLOADOCVTHREAD::~VIDEOLOADOCVTHREAD()
     qDebug()<<"LIBERANDOVIDEO...";
 }
 
+
 void VIDEOLOADOCVTHREAD::run()
 {
     qDebug()<<"THREAD INICIADO...";
-
+    QString Codec = "";
     if(PathVideoOCV.size()!=0){
         emit StatePathVerified(true);
         qDebug()<<QString::fromStdString(PathVideoOCV);
-        try
-        {
-            throw LoadVideo->open(PathVideoOCV);
-
+        try{
+            LoadVideo->open(PathVideoOCV);
+            int ex = static_cast<int>(LoadVideo->get(CV_CAP_PROP_FOURCC));
+            char EXT[] = {ex & 0XFF , (ex & 0XFF00) >> 8,(ex & 0XFF0000) >> 16,(ex & 0XFF000000) >> 24, 0};
+            qDebug()<<"CODEC: "<<EXT;
+            Codec.push_back(QChar(EXT[0]));
+            Codec.push_back(QChar(EXT[1]));
+            Codec.push_back(QChar(EXT[2]));
+            Codec.push_back(QChar(EXT[3]));
         } catch (cv::Exception &exc)
         {
             qDebug() << "cv exception: " << exc.what();
-        } catch(...)
-        {
-            qDebug() << "unknown exception";
         }
 
-
+        if(Codec == "H264"){
+            LoadVideo->release();
+            emit EmitProccessConvVideo(true);
+            while(!ConvEnd){
+                this->msleep(200);
+                if(Stoped){
+                    break;
+                }
+            }
+            if(!Stoped){
+                qDebug()<<"Abriendo arvhio convertido....";
+                try{
+                    LoadVideo->open("myfile.mp4");
+                }catch (cv::Exception &exc){
+                    qDebug() << "cv exception: " << exc.what();
+                }
+            }
+            ConvEnd = false;
+        }
         if(LoadVideo->isOpened()==true){
             emit StateLoadVideo(true);
             FrameCount=(int)LoadVideo->get(CV_CAP_PROP_FRAME_COUNT);
@@ -87,7 +110,7 @@ void VIDEOLOADOCVTHREAD::run()
             }
         }else{
             emit StateLoadVideo(false);
-            qDebug()<<"THREAD LOADVIDEO...";
+            qDebug()<<"THREAD LOADVIDEO CERRANDO...";
             //std::cout<<PathVideoOCV;
         }
     }else{
@@ -102,6 +125,11 @@ void VIDEOLOADOCVTHREAD::run()
 
 
     qDebug()<<"THREAD VIDEO TERMINADO...";
+}
+
+void VIDEOLOADOCVTHREAD::FinishConv(bool state)
+{
+    ConvEnd = state;
 }
 
 void VIDEOLOADOCVTHREAD::ApplyRotate(cv::Mat &Src, cv::Mat &Dst, float angle)

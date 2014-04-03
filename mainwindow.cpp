@@ -23,9 +23,13 @@ MainWindow::MainWindow(QWidget *parent) :
     posSlider=0;
     msgBox = new QMessageBox(this);
     msgBox->setModal(false);
-    msgBox->setWindowTitle("Warning Direction Location");
-    msgBox->setText("Bad configuration Paths.                                        ");
-    msgBox->setIcon(QMessageBox::Warning);
+
+    VideoCodec = new QProcess(this);
+    FileConv = new QFile(this);
+    FileConv->setFileName("myfile.mp4");
+    if(FileConv->exists()){
+        FileConv->remove();
+    }
 
     this->conexiones();
 
@@ -94,6 +98,11 @@ void MainWindow::conexiones(void)
     this->connect(ui->checkBoxResizeEXtract,SIGNAL(stateChanged(int)),this,SLOT(ClickChecbox(int)));
     this->connect(ui->spinBoxResHeight,SIGNAL(valueChanged(int)),this,SLOT(ClickSpinBoxResize(int)));
     this->connect(ui->spinBoxResWidth,SIGNAL(valueChanged(int)),this,SLOT(ClickSpinBoxResize(int)));
+
+    this->connect(VideoCodec,SIGNAL(error(QProcess::ProcessError)),this,SLOT(ErrorProcess(QProcess::ProcessError)));
+    this->connect(VideoCodec,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(ProcessEnd(int,QProcess::ExitStatus)));
+    this->connect(&VideoLoadOCV,SIGNAL(EmitProccessConvVideo(bool)),this,SLOT(InitProcessConv(bool)));
+    this->connect(this,SIGNAL(EmitFinProccess(bool)),&VideoLoadOCV,SLOT(FinishConv(bool)));
 }
 
 void MainWindow::ClickRadioButtonBox(bool State)
@@ -132,6 +141,100 @@ void MainWindow::ClickSpinBoxBoxStatic(int Value)
                                          ui->spinBoxWidthBoxStatic->value());
 }
 
+void MainWindow::ReceiveErrorProcess(unsigned char code)
+{
+    msgBox->setWindowTitle("PROCESS ERROR");
+    msgBox->setText("Error ejecution FFMPEG conv.                                        ");
+    msgBox->setIcon(QMessageBox::Critical);
+    if(code == 0){
+        msgBox->setInformativeText("Start FFMPEG failed....");
+        msgBox->show();
+    }else if(code == 1){
+        msgBox->setInformativeText("Crasehd FFMPEG....");
+        msgBox->show();
+    }else if(code == 2){
+        msgBox->setInformativeText("TimeOut FFMPEG....");
+        msgBox->show();
+    }else if(code == 3){
+        msgBox->setInformativeText("Write FFMPEG error....");
+        msgBox->show();
+    }else if(code == 4){
+        msgBox->setInformativeText("Read FFMPEG error....");
+        msgBox->show();
+    }else if(code == 5){
+        msgBox->setInformativeText("Unknow error FFMPEG....");
+        msgBox->show();
+    }else if(code == 6){
+        msgBox->setInformativeText("Deafult FFMPEG....");
+        msgBox->show();
+    }
+}
+
+void MainWindow::ErrorProcess(QProcess::ProcessError error)
+{
+    switch(error)
+    {
+    case QProcess::FailedToStart:
+        ReceiveErrorProcess(0);
+        break;
+    case QProcess::Crashed:
+        ReceiveErrorProcess(1);
+        break;
+    case QProcess::Timedout:
+        ReceiveErrorProcess(2);
+        break;
+    case QProcess::WriteError:
+        ReceiveErrorProcess(3);
+        break;
+    case QProcess::ReadError:
+        ReceiveErrorProcess(4);
+        break;
+    case QProcess::UnknownError:
+        ReceiveErrorProcess(5);
+        break;
+    default:
+        ReceiveErrorProcess(6);
+        break;
+    }
+}
+
+void MainWindow::ProcessEnd(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    switch (exitStatus){
+    case QProcess::NormalExit:
+        qDebug()<<"Salida normal... "<<exitCode;
+        emit EmitFinProccess(true);
+        break;
+    case QProcess::CrashExit:
+        qDebug()<<"Salida crasehd... "<<exitCode;
+        emit EmitFinProccess(true);
+        break;
+    default:
+        break;
+    }
+    msgBox->hide();
+}
+
+void MainWindow::InitProcessConv(bool state)
+{
+    if(state){
+        QString ProgramPath = "ffmpeg-20140403/bin/ffmpeg.exe";
+        QStringList argumentos;
+        argumentos<<"-loglevel"<<"quiet"<<"-i"<<FileNameLocation<<"-vcodec"<<"libx264"<<"-profile:v"<<"baseline"<<"-preset"<<"ultrafast"<<"myfile.mp4";
+        VideoCodec->start(ProgramPath,argumentos);
+        if(!VideoCodec->waitForStarted()){
+             ReceiveErrorProcess(0);
+        }else{
+            msgBox->setWindowTitle("Processing Video File");
+            msgBox->setText("Processing Video File.                                        ");
+            msgBox->setInformativeText("Please wait a moment, if you want stop push Stop Video");
+            msgBox->setIcon(QMessageBox::Warning);
+            msgBox->show();
+        }
+    }else{
+    }
+}
+
 void MainWindow::ClickSpinBoxResize(int dato)
 {
     QSpinBox *spinBox = qobject_cast<QSpinBox *>(sender());
@@ -157,6 +260,7 @@ void MainWindow::LoadVideoNow(void)
 
     fileName = QFileDialog::getOpenFileName(this, tr("OPEN VIDEOS"), QDir::homePath(),
                 tr("files AVI (*.avi *AVI);;files MP4 (*.mp4 *.MP4);;files FLV (*.flv *.FLV)"));
+    FileNameLocation = fileName;
     if(fileName.size()>0){
        //qDebug()<<"FILE ANTES::  "<<fileName;
         VideoLoadOCV.SetPathVideoFile(fileName);
@@ -197,12 +301,14 @@ void MainWindow::ClickChecbox(int Estado)
             ui->labelResWidth->setEnabled(true);
             ui->spinBoxResHeight->setEnabled(true);
             ui->spinBoxResWidth->setEnabled(true);
+            ui->checkBoxImageEXtractOnly->setEnabled(true);
         }else{
             ui->checkBoxResizeEXtract->setEnabled(false);
             ui->labelResHeight->setEnabled(false);
             ui->labelResWidth->setEnabled(false);
             ui->spinBoxResHeight->setEnabled(false);
             ui->spinBoxResWidth->setEnabled(false);
+            ui->checkBoxImageEXtractOnly->setEnabled(false);
         }
     }
 
@@ -541,8 +647,8 @@ void MainWindow::ClickOK(void)
         QString ImageLocationFromUser2 = ui->lineEditImageDirOutput->text();
         if(DirImages.size()!=0){
             if(DirFileTXT.size()!=0){
-                   NamePos="/"+NamePos+FramePos+".png";
-                   NameSVM="/"+NameSVM+FramePos+".png";
+                   NamePos="\\"+NamePos+FramePos+".png";
+                   NameSVM="\\"+NameSVM+FramePos+".png";
                    ImageLocalization=DirImages+NamePos;
                    ImageLocalizationSVM=DirImages+NameSVM;                   
                    if(ImageLocationAnt!=ImageLocalization){
@@ -562,22 +668,39 @@ void MainWindow::ClickOK(void)
                        }
                        if(ui->checkBoxSVM->isChecked()){
                            ImageLocationFromUser2 = ImageLocationFromUser2 + NameSVM;
-                           FrameDROI.save(ImageLocalizationSVM, "png");
                            QFile file(DirFileTXTPosSVM);
                            file.open(QIODevice::ReadWrite |QIODevice::Append | QIODevice::Text);
                            QTextStream outStream(&file);
-                           outStream <<ImageLocationFromUser2<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox;
-                           outStream <<AngleRotation<<" "<<ResizeWidth<<" "<<ResizeHeight<<"\n";
-                           file.close();
+                           if(ui->checkBoxImageEXtractOnly->isChecked()){
+                               FrameDROI.save(ImageLocalizationSVM, "png");
+                               outStream <<ImageLocationFromUser2<<"\n";
+                           }else{
+                               FrameD.save(ImageLocalizationSVM,"png");
+                               outStream <<ImageLocationFromUser2<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox<<" ";
+                               outStream <<AngleRotation<<" "<<ResizeWidth<<" "<<ResizeHeight<<"\n";
+                               file.close();
+                           }
                        }
                        ImageLocationAnt=ImageLocalization;
+                   }else{
+                       msgBox->setWindowTitle("Configuration Paths");
+                       msgBox->setText("Image process.                                        ");
+                       msgBox->setIcon(QMessageBox::Warning);
+                       msgBox->setInformativeText("Image already procees....");
+                       msgBox->show();
                    }
             }else{
+                msgBox->setWindowTitle("Configuration Paths");
+                msgBox->setText("File positive location.                                        ");
+                msgBox->setIcon(QMessageBox::Warning);
                 msgBox->setInformativeText("Postive file TXT location Bad");
                 msgBox->show();
                 //qDebug()<<"DEBE INDICAR UN ARCHIVO .txt PARA ALMACENAR LA INFO...";
             }
         }else{
+            msgBox->setWindowTitle("Configuration Paths");
+            msgBox->setText("File Positive location.                                        ");
+            msgBox->setIcon(QMessageBox::Warning);
             msgBox->setInformativeText("Postive Dir Image location Bad");
             msgBox->show();
             //qDebug()<<"DEBE INDICAR UN DIRECTORIO DONDE SE VA ALMACENAR LAS IMAGENES (POSITIVAS)...";
@@ -589,8 +712,8 @@ void MainWindow::ClickOK(void)
         if(DirImagesNeg.size()!=0){
             if(DirFileTXTNeg.size()!=0){
 
-                    NameNeg="/"+NameNeg+FramePos+".png";
-                    NameSVMNeg="/"+NameSVMNeg+FramePos+".png";
+                    NameNeg="\\"+NameNeg+FramePos+".png";
+                    NameSVMNeg="\\"+NameSVMNeg+FramePos+".png";
                     ImageLocalization=DirImagesNeg+NameNeg;
                     ImageLocalizationSVM=DirImagesNeg+NameSVMNeg;
                     ImageLocationFromUser = ImageLocationFromUser + NameSVMNeg;
@@ -604,23 +727,34 @@ void MainWindow::ClickOK(void)
                             file.close();
                         }
 
-                        if(ui->checkBoxSVM->isChecked()){
-                            FrameDROI.save(ImageLocalizationSVM, "png");
+                        if(ui->checkBoxSVM->isChecked()){                            
                             QFile file(DirFileTXTNegSVM);
                             file.open(QIODevice::ReadWrite |QIODevice::Append | QIODevice::Text);
                             QTextStream outStream(&file);
-                            outStream <<ImageLocationFromUser<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox;
-                            outStream <<AngleRotation<<" "<<ResizeWidth<<" "<<ResizeHeight<<"\n";
+                            if(ui->checkBoxImageEXtractOnly->isChecked()){
+                                FrameDROI.save(ImageLocalizationSVM, "png");
+                                outStream <<ImageLocationFromUser<<"\n";
+                            }else{
+                                FrameD.save(ImageLocalizationSVM,"png");
+                                outStream <<ImageLocationFromUser<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox<<" ";
+                                outStream <<AngleRotation<<" "<<ResizeWidth<<" "<<ResizeHeight<<"\n";
+                            }
                             file.close();
                         }
                         ImageLocationAnt=ImageLocalization;
                     }
             }else{
+                msgBox->setWindowTitle("Configuration Paths");
+                msgBox->setText("File Negative location.                                        ");
+                msgBox->setIcon(QMessageBox::Warning);
                 msgBox->setInformativeText("Negtive file TXT location Bad");
                 msgBox->show();
                 //qDebug()<<"DEBE INDICAR UN ARCHIVO .txt PARA ALMACENAR LA INFO...";
             }
         }else{
+            msgBox->setWindowTitle("Configuration Paths");
+            msgBox->setText("File Negative location.                                        ");
+            msgBox->setIcon(QMessageBox::Warning);
             msgBox->setInformativeText("Negative Dir Image location Bad");
             msgBox->show();
             //qDebug()<<"DEBE INDICAR UN DIRECTORIO DONDE SE VA ALMACENAR LAS IMAGENES (NEGATIVAS)...";

@@ -873,6 +873,25 @@
      </rect>
     </property>
    </widget>
+   <widget class="QCheckBox" name="checkBoxImageEXtractOnly">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>870</x>
+      <y>530</y>
+      <width>91</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sirve para solo extraer la region de interes&lt;/p&gt;&lt;p&gt;Solo va ir la ubicacion de la region de la&lt;/p&gt;&lt;p&gt;la imagen extraida.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="text">
+     <string>Extract Region</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
