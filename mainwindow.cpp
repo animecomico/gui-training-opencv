@@ -218,7 +218,11 @@ void MainWindow::ProcessEnd(int exitCode, QProcess::ExitStatus exitStatus)
 void MainWindow::InitProcessConv(bool state)
 {
     if(state){
+#ifdef Q_OS_LINUX
+        QString ProgramPath = "ffmpeg";
+#else
         QString ProgramPath = "ffmpeg-20140403/bin/ffmpeg.exe";
+#endif
         QStringList argumentos;
         argumentos<<"-loglevel"<<"quiet"<<"-i"<<FileNameLocation<<"-vcodec"<<"libx264"<<"-profile:v"<<"baseline"<<"-preset"<<"ultrafast"<<"myfile.mp4";
         VideoCodec->start(ProgramPath,argumentos);

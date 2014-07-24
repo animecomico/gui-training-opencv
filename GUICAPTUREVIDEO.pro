@@ -74,11 +74,11 @@ CONFIG(debug, debug|release){
     contains(PC_HOST, LINUX){
         message(S.O. LINUX Debug)
 
-        INCLUDEPATH+= /media/WORKING/UBUNTU/12.04X64/OPENCV/OPENCV2.4.9_X64_GCC4.6.3/Debug/include
-        LIBS+= -L/media/WORKING/UBUNTU/12.04X64/OPENCV/OPENCV2.4.9_X64_GCC4.6.3/Debug/lib
+        INCLUDEPATH+= /media/linuxcarlos/WORKING/UBUNTU/14.04X64/OPENCV/OpenCV2.4.7/V1/Debug/include
+        LIBS+= -L/media/linuxcarlos/WORKING/UBUNTU/14.04X64/OPENCV/OpenCV2.4.7/V1/Debug/lib
         LIBS+= -lopencv_core -lopencv_highgui -lopencv_calib3d -lopencv_contrib -lopencv_features2d -lopencv_flann
         LIBS+= -lopencv_gpu -lopencv_imgproc -lopencv_legacy -lopencv_ml -lopencv_nonfree -lopencv_objdetect -lopencv_photo
-        LIBS+= -lopencv_softcascade -lopencv_stitching -lopencv_ts -lopencv_video -lopencv_videostab
+        LIBS+= -lopencv_stitching -lopencv_ts -lopencv_video -lopencv_videostab
     }
 }
 CONFIG(release, debug|release){
@@ -98,11 +98,11 @@ CONFIG(release, debug|release){
     }
     contains(PC_HOST, LINUX){
         message(S.O. LINUX Release)
-        INCLUDEPATH+= /media/WORKING/UBUNTU/12.04X64/OPENCV/OPENCV2.4.9_X64_GCC4.6.3/Release/include
-        LIBS+= -L/media/WORKING/UBUNTU/12.04X64/OPENCV/OPENCV2.4.9_X64_GCC4.6.3/Release/lib
+        INCLUDEPATH+= /media/linuxcarlos/WORKING/UBUNTU/14.04X64/OPENCV/OpenCV2.4.7/V1/Release/include
+        LIBS+= -L/media/linuxcarlos/WORKING/UBUNTU/14.04X64/OPENCV/OpenCV2.4.7/V1/Release/lib
         LIBS+= -lopencv_core -lopencv_highgui -lopencv_calib3d -lopencv_contrib -lopencv_features2d -lopencv_flann
         LIBS+= -lopencv_gpu -lopencv_imgproc -lopencv_legacy -lopencv_ml -lopencv_nonfree -lopencv_objdetect -lopencv_photo
-        LIBS+= -lopencv_softcascade -lopencv_stitching -lopencv_ts -lopencv_video -lopencv_videostab
+        LIBS+= -lopencv_stitching -lopencv_ts -lopencv_video -lopencv_videostab
     }
 }
 
