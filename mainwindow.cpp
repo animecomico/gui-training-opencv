@@ -431,9 +431,13 @@ void MainWindow::FileSavePositivesDirImages(void)
        DirFileTXT=fileNameTXT;
        DirFileTXTPosHaar = DirFileTXT;
        DirFileTXTPosSVM = DirFileTXT;
+#ifdef Q_OS_WIN32
        DirFileTXTPosHaar.remove(DirFileTXTPosHaar.size()-4,4);
+#endif
        DirFileTXTPosHaar = DirFileTXTPosHaar + "_Haar.txt";
+#ifdef Q_OS_WIN32
        DirFileTXTPosSVM.remove(DirFileTXTPosSVM.size()-4,4);
+#endif
        DirFileTXTPosSVM = DirFileTXTPosSVM + "_SVM.txt";
 
        ui->lineEditTXTDir->setText(fileNameTXT);
@@ -504,9 +508,13 @@ void MainWindow::FileSaveNegativeDirImages(void)
 
        DirFileTXTNegHaar = DirFileTXTNeg;
        DirFileTXTNegSVM = DirFileTXTNeg;
+#ifdef Q_OS_WIN32
        DirFileTXTNegHaar.remove(DirFileTXTNegHaar.size()-4,4);
+#endif
        DirFileTXTNegHaar = DirFileTXTNegHaar + "_Haar.txt";
+#ifdef Q_OS_WIN32
        DirFileTXTNegSVM.remove(DirFileTXTNegSVM.size()-4,4);
+#endif
        DirFileTXTNegSVM = DirFileTXTNegSVM + "_SVM.txt";
 
        ui->lineEditTXTDirNegative->setText(fileNameTXT);
@@ -651,8 +659,13 @@ void MainWindow::ClickOK(void)
         QString ImageLocationFromUser2 = ui->lineEditImageDirOutput->text();
         if(DirImages.size()!=0){
             if(DirFileTXT.size()!=0){
+#ifdef Q_OS_WIN32
                    NamePos="\\"+NamePos+FramePos+".png";
                    NameSVM="\\"+NameSVM+FramePos+".png";
+#else
+                   NamePos="/"+NamePos+FramePos+".png";
+                   NameSVM="/"+NameSVM+FramePos+".png";
+#endif
                    ImageLocalization=DirImages+NamePos;
                    ImageLocalizationSVM=DirImages+NameSVM;                   
                    if(ImageLocationAnt!=ImageLocalization){
