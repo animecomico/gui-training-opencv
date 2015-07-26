@@ -5,6 +5,7 @@
 #include <QProcess>
 #include <QMessageBox>
 #include <QFile>
+#include <QFileDialog>
 #include "LabelEventMouse.h"
 #include "UTILITYQT.h"
 #include "VideoLoadOCV_Thread.h"
