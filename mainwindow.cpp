@@ -346,10 +346,12 @@ void MainWindow::NextFrameClick(void)
 
     ui->verticalSliderVIDEO->setSliderPosition(posAct);
     ///this->ChangeSpinBox(posAct);
-    ui->labelHeightBox->setText("0");
-    ui->labelWidthBox->setText("0");
-    ui->labelPosXi->setText("0");
-    ui->labelPosYi->setText("0");
+    if(!ui->checkBoxRetainLast->isChecked()){
+        ui->labelHeightBox->setText("0");
+        ui->labelWidthBox->setText("0");
+        ui->labelPosXi->setText("0");
+        ui->labelPosYi->setText("0");
+    }
 }
 
 void MainWindow::BackFrameClick(void)
@@ -653,6 +655,15 @@ void MainWindow::ClickOK(void)
     QString ResizeWidth = ui->spinBoxResWidth->text();
     QString HeightBox=ui->labelHeightBox->text();
     QString WidthBox=ui->labelWidthBox->text();
+
+    if(PosXini=="0" && PosYini=="0" && HeightBox=="0" && WidthBox=="0"){
+        msgBox->setWindowTitle("Box Selection...");
+        msgBox->setText("Image Extraction.                                        ");
+        msgBox->setIcon(QMessageBox::Warning);
+        msgBox->setInformativeText("Select a region to extract");
+        msgBox->show();
+        return;
+    }
 
     if(ui->radioButtonPositive->isChecked()){
         QString ImageLocationFromUser = ui->lineEditImageDirOutput->text();
