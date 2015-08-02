@@ -34,6 +34,7 @@ public slots:
     void LoadVideoNow(void);
     void ReceiveImage(QImage ImaVideo);
     void ReceiveImageROI(QImage ImaVideoROI);
+    void ReceiveImagePOly(QImage ImaVideoPoly);
     void ResizeVerticalSlider(int CountFrame);
     void NextFrameClick(void);
     void BackFrameClick(void);
@@ -71,6 +72,7 @@ private:
     cv::Mat *imageD;
     QImage FrameD;
     QImage FrameDROI;
+    QImage ImagePoly;
     VIDEOLOADOCVTHREAD VideoLoadOCV;
     bool stopthread;
     QFile *WriteReadFileTXT;
@@ -94,6 +96,7 @@ private:
     QString FileNameLocation;
     QProcess *VideoCodec;
     QFile *FileConv;
+    bool ExtratbyPoints;
 };
 
 #endif // MAINWINDOW_H

@@ -192,7 +192,7 @@ void LabelEventMouse::mouseReleaseEvent(QMouseEvent *evn)
 void LabelEventMouse::paintEvent(QPaintEvent *evn)
 {
     QLabel::paintEvent(evn);
-    QPen PencilOrigin(Qt::red, 3);
+    QPen PencilOrigin(Qt::green, 3);
     QPainter pintor(this);
     QString PosMouseM = QString::number(XInit) + "," + QString::number(YInit);
     QString PosMouseM2 = QString::number(XInit) + "," + QString::number(YInit-HeightBox);

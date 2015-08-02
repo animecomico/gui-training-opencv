@@ -35,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ImageLocationAnt="////";
     datoAnt=0;
+    ExtratbyPoints = false;
 
 }
 
@@ -106,6 +107,7 @@ void MainWindow::conexiones(void)
     this->connect(this,SIGNAL(EmitFinProccess(bool)),&VideoLoadOCV,SLOT(FinishConv(bool)));
 
     this->connect(ui->pushButtonExtract1,SIGNAL(clicked()),this,SLOT(ClickExtract1()));
+    this->connect(&VideoLoadOCV,SIGNAL(ImagePolyExtract(QImage)),this,SLOT(ReceiveImagePOly(QImage)));
 }
 
 void MainWindow::ClickRadioButtonBox(bool State)
@@ -122,6 +124,7 @@ void MainWindow::ClickRadioButtonBox(bool State)
                 ui->labelHeightBoxStatic->setEnabled(false);
                 ui->labelWidthBoxStatic->setEnabled(false);
                 LabelImagen->setTypeBox((unsigned char)0);
+                ui->pushButtonExtract1->setEnabled(false);
             }else if(RadioButtonSelect->objectName() == "radioButtonBoxStatic"){
                 ui->radioButtonBoxDynamic->setChecked(false);
                 ui->radioButtonBoxStatic->setChecked(true);
@@ -132,6 +135,7 @@ void MainWindow::ClickRadioButtonBox(bool State)
                 LabelImagen->setTypeBox((unsigned char)1);
                 LabelImagen->UpdateHeightandWidthBox(ui->spinBoxHeightBoxStatic->value(),
                                                      ui->spinBoxWidthBoxStatic->value());
+                ui->pushButtonExtract1->setEnabled(false);
             }else if(RadioButtonSelect->objectName() == "radioButtonBoxPoints"){
                 ui->radioButtonBoxDynamic->setChecked(false);
                 ui->radioButtonBoxStatic->setChecked(false);
@@ -139,6 +143,7 @@ void MainWindow::ClickRadioButtonBox(bool State)
                 ui->spinBoxWidthBoxStatic->setEnabled(false);
                 ui->labelHeightBoxStatic->setEnabled(false);
                 ui->labelWidthBoxStatic->setEnabled(false);
+                ui->pushButtonExtract1->setEnabled(true);
                 LabelImagen->setTypeBox((unsigned char)2);
             }
         }
@@ -274,7 +279,7 @@ void MainWindow::LoadVideoNow(void)
     }
 
     fileName = QFileDialog::getOpenFileName(this, tr("OPEN VIDEOS"), QDir::homePath(),
-                tr("files AVI (*.avi *AVI);;files MP4 (*.mp4 *.MP4);;files FLV (*.flv *.FLV)"));
+                tr("files AVI (*.avi *AVI);;files MP4 (*.mp4 *.MP4);;files FLV (*.flv *.FLV);;File 3gp(*.3gp *.3GP)"));
     FileNameLocation = fileName;
     if(fileName.size()>0){
        //qDebug()<<"FILE ANTES::  "<<fileName;
@@ -298,6 +303,11 @@ void MainWindow::ReceiveImageROI(QImage ImaVideoROI)
     ui->labelImageExtract->setPixmap(QPixmap::fromImage(FrameDROI));
 }
 
+void MainWindow::ReceiveImagePOly(QImage ImaVideoPoly)
+{
+    ImagePoly = ImaVideoPoly;
+}
+
 void MainWindow::ClickChecbox(int Estado)
 {
     QCheckBox *checkBox = qobject_cast<QCheckBox *>(sender());
@@ -311,19 +321,19 @@ void MainWindow::ClickChecbox(int Estado)
     }else if(checkBox->objectName() == "checkBoxSVM"){
         //qDebug()<<"ChecBox SVM: "<<Estado;
         if(Estado!=0){
-            ui->checkBoxResizeEXtract->setEnabled(true);
+            //ui->checkBoxResizeEXtract->setEnabled(true);
             ui->labelResHeight->setEnabled(true);
             ui->labelResWidth->setEnabled(true);
             ui->spinBoxResHeight->setEnabled(true);
             ui->spinBoxResWidth->setEnabled(true);
-            ui->checkBoxImageEXtractOnly->setEnabled(true);
+            //ui->checkBoxImageEXtractOnly->setEnabled(true);
         }else{
-            ui->checkBoxResizeEXtract->setEnabled(false);
+            //ui->checkBoxResizeEXtract->setEnabled(false);
             ui->labelResHeight->setEnabled(false);
             ui->labelResWidth->setEnabled(false);
             ui->spinBoxResHeight->setEnabled(false);
             ui->spinBoxResWidth->setEnabled(false);
-            ui->checkBoxImageEXtractOnly->setEnabled(false);
+            //ui->checkBoxImageEXtractOnly->setEnabled(false);
         }
     }
 
@@ -363,6 +373,7 @@ void MainWindow::NextFrameClick(void)
         ui->labelPosXi->setText("0");
         ui->labelPosYi->setText("0");
     }
+    ExtratbyPoints = false;
 }
 
 void MainWindow::BackFrameClick(void)
@@ -654,6 +665,7 @@ void MainWindow::ClickExtract1(void)
     std::vector<QPoint> PoinstS;
     LabelImagen->getPointsSelects(PoinstS);
     VideoLoadOCV.ExtractRegionPloygonal(PoinstS);
+    ExtratbyPoints = true;
 }
 
 void MainWindow::ClickOK(void)
@@ -683,6 +695,15 @@ void MainWindow::ClickOK(void)
         return;
     }
 
+    if(ExtratbyPoints == false && ui->radioButtonBoxPoints->isChecked()){
+        msgBox->setWindowTitle("Box Selection...");
+        msgBox->setText("Image Extraction.                                        ");
+        msgBox->setIcon(QMessageBox::Warning);
+        msgBox->setInformativeText("Select a region to extract, Press Extract...");
+        msgBox->show();
+        return;
+    }
+
     if(ui->radioButtonPositive->isChecked()){
         QString ImageLocationFromUser = ui->lineEditImageDirOutput->text();
         QString ImageLocationFromUser2 = ui->lineEditImageDirOutput->text();
@@ -707,14 +728,18 @@ void MainWindow::ClickOK(void)
                            ImageLocationFromUser = ImageLocationFromUser + NamePos;
                            if(!ui->radioButtonBoxPoints->isChecked()){
                                 FrameD.save(ImageLocalization,"png");
+                                QFile file(DirFileTXTPosHaar);
+                                file.open(QIODevice::ReadWrite |QIODevice::Append | QIODevice::Text);
+                                QTextStream outStream(&file);
+                                outStream <<ImageLocationFromUser<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox<<"\n";
+                                file.close();
                            }else{
-
+                               if(ui->checkBoxImageEXtractOnly->isChecked()){
+                                   FrameDROI.save(ImageLocalization, "png");
+                               }else{
+                                   ImagePoly.save(ImageLocalization,"png");
+                               }
                            }
-                           QFile file(DirFileTXTPosHaar);
-                           file.open(QIODevice::ReadWrite |QIODevice::Append | QIODevice::Text);
-                           QTextStream outStream(&file);
-                           outStream <<ImageLocationFromUser<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox<<"\n";
-                           file.close();
                        }
                        if(ui->checkBoxSVM->isChecked()){
                            ImageLocationFromUser2 = ImageLocationFromUser2 + NameSVM;

@@ -36,6 +36,7 @@ signals:
     void ImageROIFromVideo(QImage);
     void EmitErrorProccess(unsigned char code);
     void EmitProccessConvVideo(bool state);
+    void ImagePolyExtract(QImage);
 public slots:
     void ReceiveValFrameActual(int ValuePosAct);
     void UpdateAngleRotate(float angle);
@@ -56,6 +57,7 @@ private:
     cv::VideoCapture *LoadVideo;
     QImage ImageVideo;
     QImage ImageVideoROI;
+    QImage ImagePoly;
     QMutex lock;
     float AngleRotate;
     bool RotateNew;

@@ -109,6 +109,7 @@ void VIDEOLOADOCVTHREAD::run()
                 }
                 if(ExtractPolyog == true){
                     cv::Mat Mask = cv::Mat::zeros(FrameActRotate.size(), CV_8UC3);
+                    cv::Mat Mask2;
                     std::vector<cv::Point> PointsOP;
                     cv::Point** Puntos= new cv::Point*[1];
                     for(int i =0;i<1;i++){
@@ -123,12 +124,16 @@ void VIDEOLOADOCVTHREAD::run()
                     const cv::Point* ppt[1] = { Puntos[0] };
                     int npt[] = { PointsR.size() };
                     cv::fillPoly( Mask, ppt, npt, 1, cv::Scalar( 255, 255, 255 ), 8 );
+                    cv::bitwise_not(Mask, Mask2);
                     cv::bitwise_and(FrameActRotate, Mask, FrameMask);
+                    cv::bitwise_or(FrameMask, Mask2, FrameMask);
                     cv::Rect BOUND = cv::boundingRect(PointsOP);
-                    cv::Mat ROI(FrameActRotate, BOUND);
+                    cv::Mat ROI(FrameMask, BOUND);
                     //cv::imwrite("salida.png",ROI);
                     ImageVideoROI=MatTOQImage(ROI);
+                    ImagePoly = MatTOQImage(FrameMask);
                     emit ImageROIFromVideo(ImageVideoROI);
+                    emit ImagePolyExtract(ImagePoly);
                     ExtractPolyog = false;
                 }
                 this->msleep(300);
