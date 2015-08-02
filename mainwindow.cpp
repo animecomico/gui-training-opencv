@@ -87,6 +87,7 @@ void MainWindow::conexiones(void)
     //this->connect(&VideoLoadOCV,SIGNAL(FrameCountVideo(int)), ui->labelSliderFrame, SLOT(setNum(int)));
     this->connect(ui->radioButtonBoxDynamic,SIGNAL(clicked(bool)), this,SLOT(ClickRadioButtonBox(bool)));
     this->connect(ui->radioButtonBoxStatic,SIGNAL(clicked(bool)), this,SLOT(ClickRadioButtonBox(bool)));
+    this->connect(ui->radioButtonBoxPoints,SIGNAL(clicked(bool)), this,SLOT(ClickRadioButtonBox(bool)));
     this->connect(ui->spinBoxHeightBoxStatic,SIGNAL(valueChanged(int)), this,SLOT(ClickSpinBoxBoxStatic(int)));
     this->connect(ui->spinBoxWidthBoxStatic,SIGNAL(valueChanged(int)), this,SLOT(ClickSpinBoxBoxStatic(int)));
 
@@ -103,6 +104,8 @@ void MainWindow::conexiones(void)
     this->connect(VideoCodec,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(ProcessEnd(int,QProcess::ExitStatus)));
     this->connect(&VideoLoadOCV,SIGNAL(EmitProccessConvVideo(bool)),this,SLOT(InitProcessConv(bool)));
     this->connect(this,SIGNAL(EmitFinProccess(bool)),&VideoLoadOCV,SLOT(FinishConv(bool)));
+
+    this->connect(ui->pushButtonExtract1,SIGNAL(clicked()),this,SLOT(ClickExtract1()));
 }
 
 void MainWindow::ClickRadioButtonBox(bool State)
@@ -129,6 +132,14 @@ void MainWindow::ClickRadioButtonBox(bool State)
                 LabelImagen->setTypeBox((unsigned char)1);
                 LabelImagen->UpdateHeightandWidthBox(ui->spinBoxHeightBoxStatic->value(),
                                                      ui->spinBoxWidthBoxStatic->value());
+            }else if(RadioButtonSelect->objectName() == "radioButtonBoxPoints"){
+                ui->radioButtonBoxDynamic->setChecked(false);
+                ui->radioButtonBoxStatic->setChecked(false);
+                ui->spinBoxHeightBoxStatic->setEnabled(false);
+                ui->spinBoxWidthBoxStatic->setEnabled(false);
+                ui->labelHeightBoxStatic->setEnabled(false);
+                ui->labelWidthBoxStatic->setEnabled(false);
+                LabelImagen->setTypeBox((unsigned char)2);
             }
         }
 }
@@ -638,6 +649,13 @@ void MainWindow::EnableNeg(void)
     }
 }
 
+void MainWindow::ClickExtract1(void)
+{
+    std::vector<QPoint> PoinstS;
+    LabelImagen->getPointsSelects(PoinstS);
+    VideoLoadOCV.ExtractRegionPloygonal(PoinstS);
+}
+
 void MainWindow::ClickOK(void)
 {
 
@@ -656,7 +674,7 @@ void MainWindow::ClickOK(void)
     QString HeightBox=ui->labelHeightBox->text();
     QString WidthBox=ui->labelWidthBox->text();
 
-    if(PosXini=="0" && PosYini=="0" && HeightBox=="0" && WidthBox=="0"){
+    if(PosXini=="0" && PosYini=="0" && HeightBox=="0" && WidthBox=="0" && ui->radioButtonBoxPoints->isChecked()==false){
         msgBox->setWindowTitle("Box Selection...");
         msgBox->setText("Image Extraction.                                        ");
         msgBox->setIcon(QMessageBox::Warning);
@@ -687,7 +705,11 @@ void MainWindow::ClickOK(void)
 //                       file.close();
                        if(ui->checkBoxHaar->isChecked()){
                            ImageLocationFromUser = ImageLocationFromUser + NamePos;
-                           FrameD.save(ImageLocalization,"png");
+                           if(!ui->radioButtonBoxPoints->isChecked()){
+                                FrameD.save(ImageLocalization,"png");
+                           }else{
+
+                           }
                            QFile file(DirFileTXTPosHaar);
                            file.open(QIODevice::ReadWrite |QIODevice::Append | QIODevice::Text);
                            QTextStream outStream(&file);

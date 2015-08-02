@@ -35,6 +35,10 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 
+contains(QTVERSION,5){
+    DEFINES+=USE_QT5
+}
+
 RESOURCES += \
     Recursos.qrc
 

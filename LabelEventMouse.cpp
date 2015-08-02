@@ -8,6 +8,11 @@ LabelEventMouse::LabelEventMouse(QWidget *parent):QLabel(parent)
     this->setAlignment(Qt::AlignCenter);
     //this->setText("Ningun Valor");
     this->setMouseTracking(true);
+#ifdef USE_QT5
+    this->setFocusPolicy(Qt::StrongFocus);
+#else
+    this->setFocusPolicy(Qt::FocusPolicy::StrongFocus);
+#endif
     pintaCaja=true;
     pintaPunto=false;
     BotonLeft=false;
@@ -38,9 +43,16 @@ void LabelEventMouse::UpdateHeightandWidthBox(int H, int W)
     WidthBox = W;
 }
 
+void LabelEventMouse::getPointsSelects(std::vector<QPoint> &PuntosAct)
+{
+    PuntosAct = PuntosCajaUser;
+}
+
 void LabelEventMouse::mouseMoveEvent(QMouseEvent *evn)
 {
     if(TypeB == 0){
+        pintaCaja = true;
+        pintaPunto = false;
         //QString X,Y;
         //int xp,yp;
         XEnd = evn->x();
@@ -66,7 +78,9 @@ void LabelEventMouse::mouseMoveEvent(QMouseEvent *evn)
 
             }
         }
-    }else{
+    }else if(TypeB == 1){
+        pintaCaja = true;
+        pintaPunto = false;
         this->update();
         if(pintaCaja == true){
             puntoInicio=evn->pos();
@@ -90,6 +104,9 @@ void LabelEventMouse::mouseMoveEvent(QMouseEvent *evn)
             Caja->setWidth(puntoFinal.x()-puntoInicio.x());
             Caja->setHeight(puntoFinal.y()-puntoInicio.y());
         }
+    }else{
+        pintaPunto = true;
+        pintaCaja = false;
     }
 
 
@@ -122,7 +139,7 @@ void LabelEventMouse::mousePressEvent(QMouseEvent *evn)
                 BotonLeft=true;
             }
         }
-    }else{
+    }else if(TypeB == 1){
         puntoInicio=evn->pos();
         XInit=puntoInicio.x();
         YInit=puntoInicio.y() - HeightBox;
@@ -139,6 +156,19 @@ void LabelEventMouse::mousePressEvent(QMouseEvent *evn)
         emit linkActivated(PosXIn);
         emit linkActivated(PosYIn);
         BotonLeft=true;
+    }else{
+        if(evn->button()==Qt::LeftButton){
+            PuntosCajaUser.push_back(PosMouse);
+            pintaPunto=true;
+        }
+        if(evn->button()==Qt::RightButton){
+            if(PuntosCajaUser.size()>=1){
+                PuntosCajaUser.pop_back();
+            }else{
+                pintaPunto=false;
+            }
+
+        }
     }
 }///EVENTO DE PRESION DE BOTON DEL MOUSE
 
@@ -151,6 +181,10 @@ void LabelEventMouse::mouseReleaseEvent(QMouseEvent *evn)
         emit EmitRegionExtract();
         BotonLeft=false;
     }
+    if(pintaPunto==true){
+        BotonLeft=false;
+        this->update();
+    }
     //pintaCaja=false;
     //delete(Caja);
 }///EVENTO DE LIBERACION DEL MOUSE
@@ -158,6 +192,7 @@ void LabelEventMouse::mouseReleaseEvent(QMouseEvent *evn)
 void LabelEventMouse::paintEvent(QPaintEvent *evn)
 {
     QLabel::paintEvent(evn);
+    QPen PencilOrigin(Qt::red, 3);
     QPainter pintor(this);
     QString PosMouseM = QString::number(XInit) + "," + QString::number(YInit);
     QString PosMouseM2 = QString::number(XInit) + "," + QString::number(YInit-HeightBox);
@@ -178,9 +213,12 @@ void LabelEventMouse::paintEvent(QPaintEvent *evn)
         }
     }
 
-    if(pintaCaja==false && pintaPunto==true && BotonLeft==true)
+    if(pintaCaja==false && pintaPunto==true)
     {
-        pintor.setPen(Qt::black);
-        pintor.drawEllipse(PosMouse,10,10);
+        pintor.setPen(PencilOrigin);
+        for(int i=0;i<PuntosCajaUser.size();i++){
+            pintor.drawEllipse(PuntosCajaUser[i],3,3);
+            pintor.drawText(PuntosCajaUser[i].x()-5,PuntosCajaUser[i].y()+15,QString::number(i));
+        }
     }
 }///EVENTO DE PINTAR

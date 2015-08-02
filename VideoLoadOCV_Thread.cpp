@@ -18,6 +18,7 @@ VIDEOLOADOCVTHREAD::VIDEOLOADOCVTHREAD(QThread *parent):QThread(parent)
     WidthRROI = 100;
     ResizeROINew = false;
     ConvEnd = false;
+    ExtractPolyog = false;
 }
 
 VIDEOLOADOCVTHREAD::~VIDEOLOADOCVTHREAD()
@@ -75,7 +76,7 @@ void VIDEOLOADOCVTHREAD::run()
             FrameCount=(int)LoadVideo->get(CV_CAP_PROP_FRAME_COUNT);
             emit FrameCountVideo(FrameCount);
             //cv::Mat Copya;
-            cv::Mat FrameAct, FrameActRotate, FrameROI, FrameROIRes;
+            cv::Mat FrameAct, FrameActRotate, FrameROI, FrameROIRes, FrameMask;
             FrameROI.create(200,200,CV_8UC1);
             while(Stoped==false){
                 LoadVideo->set(CV_CAP_PROP_POS_FRAMES,(double)GetPosFrame);
@@ -105,6 +106,30 @@ void VIDEOLOADOCVTHREAD::run()
                     ImageVideoROI=MatTOQImage(FrameROIRes);
                     emit ImageROIFromVideo(ImageVideoROI);
                     ResizeROINew = false;
+                }
+                if(ExtractPolyog == true){
+                    cv::Mat Mask = cv::Mat::zeros(FrameActRotate.size(), CV_8UC3);
+                    std::vector<cv::Point> PointsOP;
+                    cv::Point** Puntos= new cv::Point*[1];
+                    for(int i =0;i<1;i++){
+                        int numCols = PointsR.size();
+                        Puntos[i]=new cv::Point[numCols];
+                        for(int j =0;j<numCols;j++){
+                            cv::Point Punto = cv::Point(PointsR[j].x(), PointsR[j].y());
+                            PointsOP.push_back(Punto);
+                            Puntos[i][j]=cv::Point(Punto);
+                        }
+                    }
+                    const cv::Point* ppt[1] = { Puntos[0] };
+                    int npt[] = { PointsR.size() };
+                    cv::fillPoly( Mask, ppt, npt, 1, cv::Scalar( 255, 255, 255 ), 8 );
+                    cv::bitwise_and(FrameActRotate, Mask, FrameMask);
+                    cv::Rect BOUND = cv::boundingRect(PointsOP);
+                    cv::Mat ROI(FrameActRotate, BOUND);
+                    //cv::imwrite("salida.png",ROI);
+                    ImageVideoROI=MatTOQImage(ROI);
+                    emit ImageROIFromVideo(ImageVideoROI);
+                    ExtractPolyog = false;
                 }
                 this->msleep(300);
             }
@@ -175,6 +200,12 @@ void VIDEOLOADOCVTHREAD::UpdateResizeROI(int Height, int Width)
     HeightRROI = Height;
     WidthRROI = Width;
     ResizeROINew = true;
+}
+
+void VIDEOLOADOCVTHREAD::ExtractRegionPloygonal(std::vector<QPoint> Points)
+{
+    PointsR = Points;
+    ExtractPolyog = true;
 }
 
 void VIDEOLOADOCVTHREAD::SetPathVideoFile(QString PathVideo)

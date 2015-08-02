@@ -7,6 +7,7 @@
 #include <QMetaType>
 #include <exception>
 #include <QMutex>
+#include <QPoint>
 
 #include "UTILITYQT.h"
 
@@ -40,6 +41,7 @@ public slots:
     void UpdateAngleRotate(float angle);
     void UpdateExtractROI(int X, int Y, int height, int width);
     void UpdateResizeROI(int Height, int Width);
+    void ExtractRegionPloygonal(std::vector<QPoint> Points);
     void StopThread(bool value);
     void FinishConv(bool state);
 private:
@@ -63,6 +65,8 @@ private:
     int WidthRROI;
     bool ResizeROINew;
     bool ConvEnd;
+    bool ExtractPolyog;
+    std::vector<QPoint> PointsR;
 };
 
 

@@ -20,6 +20,7 @@ public:
     ~LabelEventMouse();
     void setTypeBox(unsigned char Type);
     void UpdateHeightandWidthBox(int H, int W);
+    void getPointsSelects(std::vector<QPoint> &PuntosAct);
 signals:
     void EmitRegionExtract(void);
 protected:
@@ -43,6 +44,7 @@ private:
     int YEnd;
     int HeightBox,WidthBox;
     unsigned char TypeB;
+    std::vector<QPoint> PuntosCajaUser;
 };
 
 #endif // LABELEVENTMOUSE_H

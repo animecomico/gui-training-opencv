@@ -37,6 +37,7 @@ public slots:
     void ResizeVerticalSlider(int CountFrame);
     void NextFrameClick(void);
     void BackFrameClick(void);
+    void ClickExtract1(void);
 
     void ReceivePosX(QString value);
 
