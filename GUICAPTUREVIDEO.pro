@@ -26,12 +26,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     UTILITYQT.cpp \
     LabelEventMouse.cpp \
-    VideoLoadOCV_Thread.cpp
+    VideoLoadOCV_Thread.cpp \
+    processonthread.cpp
 
 HEADERS  += mainwindow.h \
     UTILITYQT.h \
     LabelEventMouse.h \
-    VideoLoadOCV_Thread.h
+    VideoLoadOCV_Thread.h \
+    processonthread.h
 
 FORMS    += mainwindow.ui
 

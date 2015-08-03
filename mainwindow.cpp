@@ -25,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     msgBox->setModal(false);
 
     VideoCodec = new QProcess(this);
+    Proceso = new ProcessOnThread(this);
     FileConv = new QFile(this);
     FileConv->setFileName("myfile.mp4");
     if(FileConv->exists()){
@@ -36,7 +37,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ImageLocationAnt="////";
     datoAnt=0;
     ExtratbyPoints = false;
-
+    minBarHaar = 0; maxBarHaar=100;
+    valueBarHaar = 0;
 }
 
 MainWindow::~MainWindow()
@@ -108,6 +110,30 @@ void MainWindow::conexiones(void)
 
     this->connect(ui->pushButtonExtract1,SIGNAL(clicked()),this,SLOT(ClickExtract1()));
     this->connect(&VideoLoadOCV,SIGNAL(ImagePolyExtract(QImage)),this,SLOT(ReceiveImagePOly(QImage)));
+
+    this->connect(ui->tabWidgetImage,SIGNAL(currentChanged(int)),this,SLOT(ChangePage(int)));
+    this->connect(ui->pushButtonExecuteHaarSamples,SIGNAL(clicked()),this,SLOT(ClickExecuteHaarSamples()));
+    this->connect(ui->pushButtonCreateSamples,SIGNAL(clicked()),this,SLOT(ClickBrowseCreateSamples()));
+    this->connect(ui->pushButtonSamplesOut,SIGNAL(clicked()),this,SLOT(ClickBrowseCreateSamplesOut()));
+    this->connect(ui->pushButtonVecOut,SIGNAL(clicked()),this,SLOT(ClickBrowseCreateSamplesVecOute()));
+
+    this->connect(Proceso,SIGNAL(emitEstateFinish(QString)),this,SLOT(updateBarHaarSamples(QString)));
+}
+
+void MainWindow::ChangePage(int index)
+{
+    if(index == 0){
+        if(ui->radioButtonPositive->isChecked()){
+            ui->pushButtonNegativeDir->setEnabled(false);
+            ui->pushButtonPositiveDir->setEnabled(true);
+        }else{
+            ui->pushButtonNegativeDir->setEnabled(true);
+            ui->pushButtonPositiveDir->setEnabled(false);
+        }
+    }else if(index == 1){
+        ui->pushButtonNegativeDir->setEnabled(true);
+        ui->pushButtonPositiveDir->setEnabled(true);
+    }
 }
 
 void MainWindow::ClickRadioButtonBox(bool State)
@@ -252,6 +278,148 @@ void MainWindow::InitProcessConv(bool state)
             msgBox->show();
         }
     }else{
+    }
+}
+
+void MainWindow::ClickExecuteHaarSamples(void)
+{
+    QString ProgramPath = ui->lineEditCreateSamples->text();
+    minBarHaar=0; maxBarHaar=100;valueBarHaar=0;
+    ui->progressBarHaarSamples->setValue(valueBarHaar);
+    this->connect(VideoCodec,SIGNAL(readyReadStandardOutput()),this,SLOT(onStdOutput()));
+    if(!ProgramPath.isEmpty()){
+        ProgramPath = ProgramPath+"/opencv_createsamples";
+        QFile File(ProgramPath);
+        if(File.exists()){
+            QString SampleDirOutput = ui->lineEditSamplesOut->text();
+            if(!SampleDirOutput.isEmpty()){
+                QString VecDirect=ui->lineEditVecOut->text();
+                if(!VecDirect.isEmpty()){
+                    QString DirPosL = ui->lineEditImageDirOutput->text();
+                    QString DirNegL= ui->lineEditImageDirOutputNeg->text();
+                    QDir DirPos(DirPosL);
+                    QDir DirNeg(DirNegL);
+                    if(DirPos.exists() && DirNeg.exists()){
+                        DirPos.setNameFilters(QStringList()<<"*.bmp"<<"*.png"<<"*.jpg"<<"*.BMP"<<"*.PNG"<<"*.JPG");
+                        DirNeg.setNameFilters(QStringList()<<"*.bmp"<<"*.png"<<"*.jpg"<<"*.BMP"<<"*.PNG"<<"*.JPG");
+                        QStringList ListFileNeg = DirNeg.entryList();
+                        QStringList ListFilePos = DirPos.entryList();
+                        QFile file(DirFileTXTNegHaar);
+                        file.open(QIODevice::ReadWrite | QIODevice::Text);
+                        QTextStream outStream(&file);
+                        foreach (QString FileLN, ListFileNeg) {
+                            //FileLN = "."+DirNegL + "/" +FileLN;
+                            FileLN = "./" +FileLN;
+                            outStream<<FileLN<<"\n";
+                        }
+                        file.close();
+                        QList<QStringList> Parametros;
+                        foreach (QString FileL, ListFilePos) {
+                            QStringList argumentos;
+                            QString FileSampleOutN;
+                            if(FileL.contains(".png") || FileL.contains(".PNG")){
+                                QString FileTempo = FileL;
+                                FileSampleOutN = SampleDirOutput+"/"+FileTempo.remove(".png") + ".txt";
+                                FileL = DirPosL+"/"+FileL;
+                            }
+                            argumentos<<"-img"<<FileL<<"-bg"<<DirFileTXTNegHaar<<"-info"<<FileSampleOutN;
+                            argumentos<<"-num"<<ui->spinBoxSamplesOut->text()<<"-maxxangle"<<ui->doubleSpinBoxMaxAX->text();
+                            argumentos<<"-maxyangle"<<ui->doubleSpinBoxMaxAY->text();
+                            argumentos<<"-maxzangle"<<ui->doubleSpinBoxMaxAZ->text();
+                            argumentos<<"-bgcolor"<<ui->spinBoxBackGColor->text();
+                            argumentos<<"-bgthresh"<<ui->spinBoxBackGThresh->text();
+                            argumentos<<"-w"<<ui->spinBoxWidthSample->text();argumentos<<"-h"<<ui->spinBoxHeightSample->text();
+                            argumentos<<"-maxidev"<<ui->spinBoxMaxDevInten->text();
+                            //qDebug()<<argumentos;
+//                            VideoCodec->start(ProgramPath,argumentos);
+//                            if(!VideoCodec->waitForStarted()){
+//                                 ReceiveErrorProcess(0);
+//                            }
+//                            VideoCodec->waitForFinished();
+                            Parametros.push_back(argumentos);
+                        }
+                        maxBarHaar = Parametros.size();
+                        ui->progressBarHaarSamples->setMaximum(maxBarHaar);
+                        ui->progressBarHaarSamples->setMinimum(minBarHaar);
+                        Proceso->passProgramAndParams(ProgramPath, Parametros);
+                        Proceso->Start();
+                    }else{
+                        msgBox->setWindowTitle("Paths opencv_createsamples");
+                        msgBox->setText("Invalid Path                                  ");
+                        msgBox->setInformativeText("Please indicate location directory of Positive Images");
+                        msgBox->setIcon(QMessageBox::Warning);
+                        msgBox->show();
+                    }
+                }else{
+                    msgBox->setWindowTitle("Paths opencv_createsamples");
+                    msgBox->setText("Invalid Path                                  ");
+                    msgBox->setInformativeText("Please indicate location dircetory of .vec out");
+                    msgBox->setIcon(QMessageBox::Warning);
+                    msgBox->show();
+                }
+            }else{
+                msgBox->setWindowTitle("Paths opencv_createsamples");
+                msgBox->setText("Invalid Path                                  ");
+                msgBox->setInformativeText("Please indicate location dircetory of samples out");
+                msgBox->setIcon(QMessageBox::Warning);
+                msgBox->show();
+            }
+        }else{
+            msgBox->setWindowTitle("Paths opencv_createsamples");
+            msgBox->setText("Invalid Path, not found opencv_createsamples on directory              ");
+            msgBox->setInformativeText("Please indicate location dircetory of opencv_createsamples");
+            msgBox->setIcon(QMessageBox::Warning);
+            msgBox->show();
+        }
+    }else{
+        msgBox->setWindowTitle("Paths opencv_createsamples");
+        msgBox->setText("Invalid Path.                                        ");
+        msgBox->setInformativeText("Please indicate location dircetory of opencv_createsamples");
+        msgBox->setIcon(QMessageBox::Warning);
+        msgBox->show();
+    }
+    this->disconnect(VideoCodec,SIGNAL(readyReadStandardOutput()),this,SLOT(onStdOutput()));
+}
+
+void MainWindow::updateBarHaarSamples(QString State)
+{
+    if(State == "Done"){
+        valueBarHaar++;
+        ui->progressBarHaarSamples->setValue(valueBarHaar);
+    }else{
+
+    }
+}
+
+void MainWindow::onStdOutput(void)
+{
+    qDebug()<<VideoCodec->readAllStandardOutput();
+}
+
+void MainWindow::ClickBrowseCreateSamples(void)
+{
+    QString FileName;
+    FileName = QFileDialog::getExistingDirectory(this,tr("Path of opencv_createsamples"), QDir::homePath());
+    if(!FileName.isEmpty()){
+        ui->lineEditCreateSamples->setText(FileName);
+    }
+}
+
+void MainWindow::ClickBrowseCreateSamplesOut(void)
+{
+    QString FileName;
+    FileName = QFileDialog::getExistingDirectory(this,tr("Path of samples out"), QDir::homePath());
+    if(!FileName.isEmpty()){
+        ui->lineEditSamplesOut->setText(FileName);
+    }
+}
+
+void MainWindow::ClickBrowseCreateSamplesVecOute(void)
+{
+    QString FileName;
+    FileName = QFileDialog::getSaveFileName(this,tr("Path of vec out"), QDir::homePath(),tr("files TXT (*.vec)"));
+    if(!FileName.isEmpty()){
+        ui->lineEditVecOut->setText(FileName);
     }
 }
 

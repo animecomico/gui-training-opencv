@@ -9,6 +9,7 @@
 #include "LabelEventMouse.h"
 #include "UTILITYQT.h"
 #include "VideoLoadOCV_Thread.h"
+#include "processonthread.h"
 
 #if defined(WIN32)
 #define WINDOWSSO 1
@@ -64,6 +65,14 @@ public slots:
     void ErrorProcess(QProcess::ProcessError error);
     void ProcessEnd(int exitCode, QProcess::ExitStatus exitStatus);
     void InitProcessConv(bool state);
+
+    void ChangePage(int index);
+    void ClickExecuteHaarSamples(void);
+    void ClickBrowseCreateSamples(void);
+    void ClickBrowseCreateSamplesOut(void);
+    void ClickBrowseCreateSamplesVecOute(void);
+    void onStdOutput(void);
+    void updateBarHaarSamples(QString State);
 protected:
     void closeEvent(QCloseEvent *event);
 private:
@@ -97,6 +106,8 @@ private:
     QProcess *VideoCodec;
     QFile *FileConv;
     bool ExtratbyPoints;
+    ProcessOnThread *Proceso;
+    int minBarHaar, maxBarHaar, valueBarHaar;
 };
 
 #endif // MAINWINDOW_H
