@@ -95,9 +95,11 @@ void VIDEOLOADOCVTHREAD::run()
                 }
 
                 if(ExtractNew == true){
-                    ExtractRegionROI(FrameActRotate, FrameROI, ROIRec);
-                    ImageVideoROI=MatTOQImage(FrameROI);
-                    emit ImageROIFromVideo(ImageVideoROI);
+                    if(ROIRec.width>0 && ROIRec.height>0 && ROIRec.x>0 && ROIRec.y>0){
+                        ExtractRegionROI(FrameActRotate, FrameROI, ROIRec);
+                        ImageVideoROI=MatTOQImage(FrameROI);
+                        emit ImageROIFromVideo(ImageVideoROI);
+                    }
                     ExtractNew = false;
                 }
 

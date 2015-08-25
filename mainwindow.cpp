@@ -954,9 +954,14 @@ void MainWindow::ClickOK(void)
         QString ImageLocationFromUser = ui->lineEditImageDirOutputNeg->text();
         if(DirImagesNeg.size()!=0){
             if(DirFileTXTNeg.size()!=0){
-
+#ifdef Q_OS_WIN32
                     NameNeg="\\"+NameNeg+FramePos+".png";
                     NameSVMNeg="\\"+NameSVMNeg+FramePos+".png";
+#else
+                NameNeg="/"+NameNeg+FramePos+".png";
+                NameSVMNeg="/"+NameSVMNeg+FramePos+".png";
+#endif
+
                     ImageLocalization=DirImagesNeg+NameNeg;
                     ImageLocalizationSVM=DirImagesNeg+NameSVMNeg;
                     ImageLocationFromUser = ImageLocationFromUser + NameSVMNeg;
