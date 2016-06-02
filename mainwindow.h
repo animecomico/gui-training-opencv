@@ -78,6 +78,8 @@ protected:
 private slots:
     void on_checkBoxHide_stateChanged(int arg1);
 
+    void on_pushButtonLoadDirectoryFil_clicked();
+
 private:
     Ui::MainWindow *ui;
     LabelEventMouse *LabelImagen;

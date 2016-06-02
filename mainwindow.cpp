@@ -612,14 +612,18 @@ void MainWindow::FileSavePositivesDirImages(void)
     ui->lineEditImageDirOutput->clear();
 
     QString fileNameTXT,dirNameImages;
-    fileNameTXT = QFileDialog::getSaveFileName(this, tr("Save TXT Positive"), QDir::homePath(),
-                tr("files TXT (*.txt *.TXT)"));
-    if(fileNameTXT.size()!=0){
 
-       dirNameImages = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
-                                                        QDir::homePath(),
-                                                        QFileDialog::ShowDirsOnly
-                                                        | QFileDialog::DontResolveSymlinks);
+    dirNameImages = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
+                                                     QDir::homePath(),
+                                                     QFileDialog::ShowDirsOnly
+                                                     | QFileDialog::DontResolveSymlinks);
+
+    if(dirNameImages.size()!=0){
+//        fileNameTXT = QFileDialog::getSaveFileName(this, tr("Save TXT Positive"), dirNameImages,
+//                    tr("files TXT (*.txt *.TXT)"));
+
+        fileNameTXT = dirNameImages+"/POS";
+
 
        DirImages=dirNameImages;
        DirFileTXT=fileNameTXT;
@@ -688,14 +692,15 @@ void MainWindow::FileSaveNegativeDirImages(void)
     ui->lineEditImageDirOutputNeg->clear();
 
     QString fileNameTXT,dirNameImages;
-    fileNameTXT = QFileDialog::getSaveFileName(this, tr("Save TXT Negative"), QDir::homePath(),
-                tr("files TXT (*.txt *.TXT)"));
-    if(fileNameTXT.size()!=0){
+    dirNameImages = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
+                                                     QDir::homePath(),
+                                                     QFileDialog::ShowDirsOnly
+                                                     | QFileDialog::DontResolveSymlinks);
 
-       dirNameImages = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
-                                                        QDir::homePath(),
-                                                        QFileDialog::ShowDirsOnly
-                                                        | QFileDialog::DontResolveSymlinks);
+    if(dirNameImages.size()!=0){
+//        fileNameTXT = QFileDialog::getSaveFileName(this, tr("Save TXT Negative"), dirNameImages,
+//                    tr("files TXT (*.txt *.TXT)"));
+       fileNameTXT = dirNameImages+"/NEG";
 
        DirImagesNeg=dirNameImages;
        DirFileTXTNeg=fileNameTXT;
@@ -1046,5 +1051,29 @@ void MainWindow::on_checkBoxHide_stateChanged(int arg1)
         ui->frame->setVisible(false);
         ui->frame_2->setVisible(false);
         ui->pushButtonOK2->setVisible(true);
+    }
+}
+
+void MainWindow::on_pushButtonLoadDirectoryFil_clicked()
+{
+    QString fileName;
+
+    if(VideoLoadOCV.isRunning()){
+        //qDebug()<<"HILO YA ESTA CORRIENDO...";
+        VideoLoadOCV.StopThread(true);
+    }
+
+    fileName = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
+                                                 QDir::homePath(),
+                                                 QFileDialog::ShowDirsOnly
+                                                 | QFileDialog::DontResolveSymlinks);
+    FileNameLocation = fileName;
+    if(fileName.size()>0){
+       //qDebug()<<"FILE ANTES::  "<<fileName;
+        VideoLoadOCV.SetParhImageDirectoty(fileName);
+        VideoLoadOCV.start();
+
+    }else{
+        qDebug()<<"FILENAME VACIO";
     }
 }

@@ -1,4 +1,26 @@
 #include "VideoLoadOCV_Thread.h"
+#include <sys/stat.h>
+#include <exception>
+#ifdef __linux__
+#include <getopt.h>             /* getopt_long() */
+
+#include <fcntl.h>              /* low-level i/o */
+#ifdef __linux__
+#include <unistd.h>
+#endif
+#ifdef _WIN32
+#include "unistd_win.h"
+#endif
+#include <errno.h>
+#include <malloc.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+#endif
+#include<dirent.h>
+
+
 #include <QDebug>
 
 VIDEOLOADOCVTHREAD::VIDEOLOADOCVTHREAD(QThread *parent):QThread(parent)
@@ -19,6 +41,7 @@ VIDEOLOADOCVTHREAD::VIDEOLOADOCVTHREAD(QThread *parent):QThread(parent)
     ResizeROINew = false;
     ConvEnd = false;
     ExtractPolyog = false;
+    isVideo=true;
 }
 
 VIDEOLOADOCVTHREAD::~VIDEOLOADOCVTHREAD()
@@ -36,52 +59,66 @@ void VIDEOLOADOCVTHREAD::run()
     qDebug()<<"THREAD INICIADO...";
     QString Codec = "";
     if(PathVideoOCV.size()!=0){
-        emit StatePathVerified(true);
-        qDebug()<<QString::fromStdString(PathVideoOCV);
-        try{
-            LoadVideo->open(PathVideoOCV);
-            int ex = static_cast<int>(LoadVideo->get(CV_CAP_PROP_FOURCC));
-            char EXT[] = {ex & 0XFF , (ex & 0XFF00) >> 8,(ex & 0XFF0000) >> 16,(ex & 0XFF000000) >> 24, 0};
-            qDebug()<<"CODEC: "<<EXT;
-            Codec.push_back(QChar(EXT[0]));
-            Codec.push_back(QChar(EXT[1]));
-            Codec.push_back(QChar(EXT[2]));
-            Codec.push_back(QChar(EXT[3]));
-        } catch (cv::Exception &exc)
-        {
-            qDebug() << "cv exception: " << exc.what();
-        }
+        if(isVideo){
+            emit StatePathVerified(true);
+            qDebug()<<QString::fromStdString(PathVideoOCV);
+            try{
+                LoadVideo->open(PathVideoOCV);
+                int ex = static_cast<int>(LoadVideo->get(CV_CAP_PROP_FOURCC));
+                char EXT[] = {ex & 0XFF , (ex & 0XFF00) >> 8,(ex & 0XFF0000) >> 16,(ex & 0XFF000000) >> 24, 0};
+                qDebug()<<"CODEC: "<<EXT;
+                Codec.push_back(QChar(EXT[0]));
+                Codec.push_back(QChar(EXT[1]));
+                Codec.push_back(QChar(EXT[2]));
+                Codec.push_back(QChar(EXT[3]));
+            } catch (cv::Exception &exc)
+            {
+                qDebug() << "cv exception: " << exc.what();
+            }
 
-        if(Codec == "H264"){
-            LoadVideo->release();
-            emit EmitProccessConvVideo(true);
-            while(!ConvEnd){
-                this->msleep(200);
-                if(Stoped){
-                    break;
+            if(Codec == "H264"){
+                LoadVideo->release();
+                emit EmitProccessConvVideo(true);
+                while(!ConvEnd){
+                    this->msleep(200);
+                    if(Stoped){
+                        break;
+                    }
                 }
-            }
-            if(!Stoped){
-                qDebug()<<"Abriendo arvhio convertido....";
-                try{
-                    LoadVideo->open("myfile.mp4");
-                }catch (cv::Exception &exc){
-                    qDebug() << "cv exception: " << exc.what();
+                if(!Stoped){
+                    qDebug()<<"Abriendo arvhio convertido....";
+                    try{
+                        LoadVideo->open("myfile.mp4");
+                    }catch (cv::Exception &exc){
+                        qDebug() << "cv exception: " << exc.what();
+                    }
                 }
+                ConvEnd = false;
             }
-            ConvEnd = false;
+        }else{
+            listFilesImagesOnDir();
         }
-        if(LoadVideo->isOpened()==true){
+        if(LoadVideo->isOpened()==true || ImageListFiles.size()>0){
             emit StateLoadVideo(true);
-            FrameCount=(int)LoadVideo->get(CV_CAP_PROP_FRAME_COUNT);
+            if(isVideo){
+                FrameCount=(int)LoadVideo->get(CV_CAP_PROP_FRAME_COUNT);
+            }else{
+                FrameCount = ImageListFiles.size();
+            }
             emit FrameCountVideo(FrameCount);
             //cv::Mat Copya;
             cv::Mat FrameAct, FrameActRotate, FrameROI, FrameROIRes, FrameMask;
             FrameROI.create(200,200,CV_8UC1);
             while(Stoped==false){
-                LoadVideo->set(CV_CAP_PROP_POS_FRAMES,(double)GetPosFrame);
+                if(isVideo){
+                    LoadVideo->set(CV_CAP_PROP_POS_FRAMES,(double)GetPosFrame);
+                }
                 if(GetFrame==true){
-                    LoadVideo->read(FrameAct);                    
+                    if(isVideo){
+                        LoadVideo->read(FrameAct);
+                    }else{
+                         FrameAct = cv::imread(ImageListFiles.at(GetPosFrame));
+                    }
                     FrameAct.copyTo(FrameActRotate);
                     ImageVideo=MatTOQImage(FrameAct);
                     emit ImageFromVideo(ImageVideo);
@@ -152,8 +189,9 @@ void VIDEOLOADOCVTHREAD::run()
     Stoped=false;
     GetFrame=true;
     GetPosFrame=0;
-
-    LoadVideo->release();
+    if(isVideo){
+        LoadVideo->release();
+    }
 
 
     qDebug()<<"THREAD VIDEO TERMINADO...";
@@ -219,6 +257,13 @@ void VIDEOLOADOCVTHREAD::SetPathVideoFile(QString PathVideo)
 {
     PathVideoOCV=PathVideo.toStdString();
     //std::cout<<"FILEPATH(OCVTHREAD):  "<<PathVideoOCV<<std::endl;
+    isVideo=true;
+}
+
+void VIDEOLOADOCVTHREAD::SetParhImageDirectoty(QString PathDir)
+{
+    PathVideoOCV=PathDir.toStdString();
+    isVideo=false;
 }
 
 void VIDEOLOADOCVTHREAD::ReceiveValFrameActual(int ValuePosAct)
@@ -232,3 +277,161 @@ void VIDEOLOADOCVTHREAD::StopThread(bool value)
 {
     Stoped=value;
 }
+
+void VIDEOLOADOCVTHREAD::listFilesImagesOnDir(void)
+{
+    char modeRead = 0; //0 order file, 1 no order file
+    short Readonly = 1;
+    std::string prefix="";
+#ifdef _WIN32
+        WIN32_FIND_DATA search_data;
+        std::vector<std::string> Lnames;
+        std::string ImageLocate;
+        bool validExt = false;
+        memset(&search_data, 0, sizeof(WIN32_FIND_DATA));
+        std::replace(DirectoryConv.begin(), DirectoryConv.end(), '\\','/');
+        ImageLocate = DirectoryConv+"/*";
+        HANDLE handle = FindFirstFile(ImageLocate.c_str(), &search_data);
+
+        while(handle != INVALID_HANDLE_VALUE)
+        {
+           //cout<<"\n"<<search_data.cFileName;
+           std::string FileName(search_data.cFileName);
+           Lnames.push_back(FileName);
+           if(FindNextFile(handle, &search_data) == FALSE)
+             break;
+        }
+        //Close the handle after use or memory/resource leak
+        FindClose(handle);
+        std::sort(Lnames.begin(), Lnames.end(), compareNat);
+        if(Lnames.size()>=0){
+            for(int i=0;i<Lnames.size();i++){
+                ImageLocate=Lnames[i];
+                if(ImageLocate.size()>4){
+                    validExt = false;
+                    if(checkSuffix(ImageLocate, ".jpg")){
+                        validExt = true;
+                    }else if(checkSuffix(ImageLocate, ".png")){
+                        validExt = true;
+                    }else if(checkSuffix(ImageLocate, ".bmp")){
+                        validExt = true;
+                    }else if(checkSuffix(ImageLocate,"ppm")){
+                        validExt = true;
+                    }else if(checkSuffix(ImageLocate, ".JPG")){
+                        validExt = true;
+                    }else if(checkSuffix(ImageLocate, ".PNG")){
+                        validExt = true;
+                    }else if(checkSuffix(ImageLocate, ".BMP")){
+                        validExt = true;
+                    }else if(checkSuffix(ImageLocate, ".PPM")){
+                        validExt = true;
+                    }else if(checkSuffix(ImageLocate, ".jpeg")){
+                        validExt = true;
+                    }
+
+                    if(validExt){
+                        ImageLocate = DirectoryConv + "/" + ImageLocate;
+                        ImageListFiles.push_back(ImageLocate);
+                    }
+                }
+            }
+        }else{
+            return (false);
+        }
+#endif
+#ifdef __linux__
+        struct dirent **namelist;
+        int n,i;
+        std::string ImageLocate;
+        bool validExt = false;
+        if(modeRead == (char)0){
+            n = scandir(PathVideoOCV.c_str(), &namelist, 0, versionsort);
+            if (n < 0){
+                perror("scandir");
+            }else{
+                for(i =0 ; i < n; ++i){
+                    ImageLocate = std::string(namelist[i]->d_name);
+                    if(ImageLocate.size()>4){
+                        validExt = false;
+                        if(Readonly>=(short)0 && Readonly<=(short)2){
+                            if(checkSuffix(ImageLocate, ".jpg")){
+                                validExt = true;
+                            }else if(checkSuffix(ImageLocate, ".png")){
+                                validExt = true;
+                            }else if(checkSuffix(ImageLocate, ".bmp")){
+                                validExt = true;
+                            }else if(checkSuffix(ImageLocate,"ppm")){
+                                validExt = true;
+                            }else if(checkSuffix(ImageLocate, ".JPG")){
+                                validExt = true;
+                            }else if(checkSuffix(ImageLocate, ".PNG")){
+                                validExt = true;
+                            }else if(checkSuffix(ImageLocate, ".BMP")){
+                                validExt = true;
+                            }else if(checkSuffix(ImageLocate, ".PPM")){
+                                validExt = true;
+                            }else if(checkSuffix(ImageLocate, ".jpeg")){
+                                validExt = true;
+                            }else if(checkSuffix(ImageLocate, ".tif")){
+                                validExt = true;
+                            }else if(checkSuffix(ImageLocate, ".TIF")){
+                                validExt = true;
+                            }else if(checkSuffix(ImageLocate, ".tiff")){
+                                validExt = true;
+                            }else if(checkSuffix(ImageLocate, ".TIFF")){
+                                validExt = true;
+                            }
+
+                            if(Readonly==(short)2){
+                                if(checkPreffix(ImageLocate, prefix)){
+                                    validExt = true;
+                                }else{
+                                    validExt = false;
+                                }
+                            }
+
+                            if(Readonly==0){
+                                if(checkSuffix(ImageLocate, ".bin")){
+                                    validExt = true;
+                                }
+                            }
+                        }else if(Readonly>=3 && Readonly<=4){
+                            if(checkSuffix(ImageLocate, ".bin")){
+                                if(Readonly==3){
+                                    validExt=true;
+                                }else if(Readonly==4){
+                                    if(checkPreffix(ImageLocate, prefix)){
+                                        validExt = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        if(validExt){
+                            ImageLocate = PathVideoOCV + "/" + ImageLocate;
+                            ImageListFiles.push_back(ImageLocate);
+                        }
+                    }
+                    free(namelist[i]);
+                }
+                free(namelist);
+            }
+        }
+#endif
+}
+
+bool VIDEOLOADOCVTHREAD::checkSuffix(const std::string& FI, const std::string& suffix)
+{
+    return (FI.size() >= suffix.size()) && equal(suffix.rbegin(), suffix.rend(), FI.rbegin());
+}
+
+bool VIDEOLOADOCVTHREAD::checkPreffix(const std::string& FI, const std::string& preffix)
+{
+    bool ban = false;
+    //auto mypair = std::mismatch(preffix.begin(), preffix.end(), FI.begin());
+    //if(mypair.first==preffix.end()){
+    //    ban=true;
+    //}
+    return(ban);
+}
+

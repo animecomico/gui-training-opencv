@@ -28,6 +28,7 @@ public:
 
     void run();
     void SetPathVideoFile(QString PathVideo);
+    void SetParhImageDirectoty(QString PathDir);
 signals:
     void ImageFromVideo(QImage);
     void FrameCountVideo(int);
@@ -49,6 +50,9 @@ private:
     void ApplyRotate(cv::Mat &Src, cv::Mat &Dst, float angle);
     void ExtractRegionROI(cv::Mat &Src, cv::Mat &Dst, cv::Rect &ROIR);
     void ResizeImage(cv::Mat &Src, cv::Mat &Dst, int SH, int SW);
+    void listFilesImagesOnDir(void);
+    bool checkPreffix(const std::string& FI, const std::string& preffix);
+    bool checkSuffix(const std::string& FI, const std::string& suffix);
     int GetPosFrame;
     bool GetFrame;
     bool Stoped;
@@ -69,6 +73,8 @@ private:
     bool ConvEnd;
     bool ExtractPolyog;
     std::vector<QPoint> PointsR;
+    bool isVideo;
+    std::vector<std::string> ImageListFiles;
 };
 
 

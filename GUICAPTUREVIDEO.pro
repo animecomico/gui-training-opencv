@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui opengl widgets
+CONFIG += c++11
 
 QTVERSION = 4
 

@@ -989,43 +989,6 @@
          </widget>
          <widget class="QWidget" name="layoutWidget">
           <layout class="QGridLayout" name="gridLayout_3">
-           <item row="2" column="0">
-            <widget class="QPushButton" name="pushButtonLoadVideo">
-             <property name="text">
-              <string>Load Video File</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QPushButton" name="pushButtonStopVideo">
-             <property name="text">
-              <string>Stop Video</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QCheckBox" name="checkBoxResizeEXtract">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="text">
-              <string>Resize Extract</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QCheckBox" name="checkBoxImageEXtractOnly">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sirve para solo extraer la region de interes&lt;/p&gt;&lt;p&gt;Solo va ir la ubicacion de la region de la&lt;/p&gt;&lt;p&gt;la imagen extraida.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="text">
-              <string>Extract Region</string>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="0" colspan="2">
             <layout class="QHBoxLayout" name="horizontalLayout_22">
              <item>
@@ -1081,6 +1044,50 @@
               </widget>
              </item>
             </layout>
+           </item>
+           <item row="0" column="1">
+            <widget class="QCheckBox" name="checkBoxImageEXtractOnly">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sirve para solo extraer la region de interes&lt;/p&gt;&lt;p&gt;Solo va ir la ubicacion de la region de la&lt;/p&gt;&lt;p&gt;la imagen extraida.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Extract Region</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QPushButton" name="pushButtonLoadVideo">
+             <property name="text">
+              <string>Load Video File</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QPushButton" name="pushButtonStopVideo">
+             <property name="text">
+              <string>Stop Video</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="checkBoxResizeEXtract">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Resize Extract</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QPushButton" name="pushButtonLoadDirectoryFil">
+             <property name="text">
+              <string>Load Directory Files</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
