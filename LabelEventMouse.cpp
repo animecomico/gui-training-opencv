@@ -11,7 +11,7 @@ LabelEventMouse::LabelEventMouse(QWidget *parent):QLabel(parent)
 #ifdef USE_QT5
     this->setFocusPolicy(Qt::StrongFocus);
 #else
-    this->setFocusPolicy(Qt::FocusPolicy::StrongFocus);
+    this->setFocusPolicy(Qt::StrongFocus);
 #endif
     pintaCaja=true;
     pintaPunto=false;
