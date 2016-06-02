@@ -75,6 +75,9 @@ public slots:
     void updateBarHaarSamples(QString State);
 protected:
     void closeEvent(QCloseEvent *event);
+private slots:
+    void on_checkBoxHide_stateChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
     LabelEventMouse *LabelImagen;

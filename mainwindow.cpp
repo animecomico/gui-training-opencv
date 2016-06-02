@@ -1033,3 +1033,12 @@ void MainWindow::ChangeSpinBox(int dato)
 
     //qDebug()<<ValorSpin;
 }
+
+void MainWindow::on_checkBoxHide_stateChanged(int arg1)
+{
+    if(arg1==0){
+        ui->frame->setVisible(true);
+    }else{
+        ui->frame->setVisible(false);
+    }
+}
