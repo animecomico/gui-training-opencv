@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ExtratbyPoints = false;
     minBarHaar = 0; maxBarHaar=100;
     valueBarHaar = 0;
+    ui->pushButtonOK2->setVisible(false);
 }
 
 MainWindow::~MainWindow()
@@ -84,6 +85,7 @@ void MainWindow::conexiones(void)
     this->connect(ui->radioButtonPositive,SIGNAL(clicked()),this,SLOT(EnablePos()));
 
     this->connect(ui->pushButtonOK,SIGNAL(clicked()),this,SLOT(ClickOK()));
+    this->connect(ui->pushButtonOK2,SIGNAL(clicked()),this,SLOT(ClickOK()));
 
     this->connect(ui->pushButtonStopVideo,SIGNAL(clicked()),this,SLOT(StopVideo()));
 
@@ -1039,8 +1041,10 @@ void MainWindow::on_checkBoxHide_stateChanged(int arg1)
     if(arg1==0){
         ui->frame->setVisible(true);
         ui->frame_2->setVisible(true);
+        ui->pushButtonOK2->setVisible(false);
     }else{
         ui->frame->setVisible(false);
         ui->frame_2->setVisible(false);
+        ui->pushButtonOK2->setVisible(true);
     }
 }
