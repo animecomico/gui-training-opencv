@@ -588,6 +588,14 @@ void MainWindow::ReceivePosX(QString value)
         }
     }
 
+    if(list.at(1)=="RGBA"){
+        QStringList color = list.at(0).split(";");
+        ui->label_R->setText(color.at(0));
+        ui->label_G->setText(color.at(1));
+        ui->label_B->setText(color.at(2));
+        qDebug()<<color;
+    }
+
 }
 
 void MainWindow::UpdateRegionExtract(void)

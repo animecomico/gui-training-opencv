@@ -127,8 +127,16 @@ void LabelEventMouse::mousePressEvent(QMouseEvent *evn)
                 QString PosXIn=QString::number(XInit)+":Xinit";
                 QString PosYIn=QString::number(YInit)+":Yinit";
 
+                QRgb rgba = this->pixmap()->toImage().pixel(XInit, YInit);
+                QString redComponent 	= QString::number(qRed	(rgba));
+                QString greenComponent 	= QString::number(qGreen(rgba));
+                QString blueComponent 	= QString::number(qBlue	(rgba));
+                QString RGBA=redComponent+";"+greenComponent+";"+blueComponent+":RGBA";
+                emit linkActivated(RGBA);
+
                 emit linkActivated(PosXIn);
                 emit linkActivated(PosYIn);
+
 
                 Caja=new QRect(puntoInicio.x(),puntoInicio.y(),0,0);
                 //pintaCaja=true;
@@ -155,6 +163,15 @@ void LabelEventMouse::mousePressEvent(QMouseEvent *evn)
         QString PosYIn=QString::number(YInit)+":Yinit";
         emit linkActivated(PosXIn);
         emit linkActivated(PosYIn);
+
+        QRgb rgba = this->pixmap()->toImage().pixel(XInit, YInit);
+        QString redComponent 	= QString::number(qRed	(rgba));
+        QString greenComponent 	= QString::number(qGreen(rgba));
+        QString blueComponent 	= QString::number(qBlue	(rgba));
+        QString RGBA=redComponent+";"+greenComponent+";"+blueComponent+":RGBA";
+        emit linkActivated(RGBA);
+
+
         BotonLeft=true;
     }else{
         if(evn->button()==Qt::LeftButton){
