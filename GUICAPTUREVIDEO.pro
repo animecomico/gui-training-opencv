@@ -20,7 +20,7 @@ linux-g++ | linux-g++-64 {
     PC_HOST += LINUX
 }
 
-include(../configures/OpencvLink.pri)
+include(OpencvLink.pri)
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -38,6 +38,7 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui
 
 contains(QTVERSION,5){
+    message(QT5 Version)
     DEFINES+=USE_QT5
 }
 
