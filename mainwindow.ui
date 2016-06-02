@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1041</width>
+    <width>1093</width>
     <height>737</height>
    </rect>
   </property>
@@ -43,8 +43,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>596</width>
-               <height>521</height>
+               <width>648</width>
+               <height>501</height>
               </rect>
              </property>
             </widget>
@@ -374,47 +374,59 @@
        </widget>
       </item>
       <item>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <property name="spacing">
-         <number>1</number>
+       <widget class="QFrame" name="frame_2">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
         </property>
-        <item row="0" column="0">
-         <widget class="QLineEdit" name="lineEditTXTDir">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QPushButton" name="pushButtonPositiveDir">
-          <property name="text">
-           <string>Positive Dir</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLineEdit" name="lineEditImageDirOutput"/>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLineEdit" name="lineEditTXTDirNegative"/>
-        </item>
-        <item row="2" column="1">
-         <widget class="QPushButton" name="pushButtonNegativeDir">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Negative Dir</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLineEdit" name="lineEditImageDirOutputNeg"/>
-        </item>
-       </layout>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_7">
+         <item>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <property name="spacing">
+            <number>1</number>
+           </property>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="pushButtonPositiveDir">
+             <property name="text">
+              <string>Positive Dir</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLineEdit" name="lineEditImageDirOutput"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLineEdit" name="lineEditTXTDirNegative"/>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLineEdit" name="lineEditTXTDir">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QPushButton" name="pushButtonNegativeDir">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Negative Dir</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLineEdit" name="lineEditImageDirOutputNeg"/>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
       </item>
      </layout>
     </item>
@@ -469,6 +481,15 @@
         </item>
         <item>
          <widget class="QCheckBox" name="checkBoxHide">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
           <property name="text">
            <string>Hide</string>
           </property>
@@ -1069,7 +1090,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1041</width>
+     <width>1093</width>
      <height>21</height>
     </rect>
    </property>

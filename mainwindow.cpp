@@ -1038,7 +1038,9 @@ void MainWindow::on_checkBoxHide_stateChanged(int arg1)
 {
     if(arg1==0){
         ui->frame->setVisible(true);
+        ui->frame_2->setVisible(true);
     }else{
         ui->frame->setVisible(false);
+        ui->frame_2->setVisible(false);
     }
 }
