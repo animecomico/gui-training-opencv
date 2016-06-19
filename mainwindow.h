@@ -73,12 +73,23 @@ public slots:
     void ClickBrowseCreateSamplesVecOute(void);
     void onStdOutput(void);
     void updateBarHaarSamples(QString State);
+    void regionBlacks(QList<QRect> boxes, QString PathSave);
 protected:
     void closeEvent(QCloseEvent *event);
 private slots:
     void on_checkBoxHide_stateChanged(int arg1);
 
     void on_pushButtonLoadDirectoryFil_clicked();
+
+    void on_pushButtonROIOK_clicked();
+
+    void on_pushButton_clicked();
+
+    void on_pushButtonROIOK2_clicked();
+
+    void on_pushButtonClearRois_clicked();
+
+    void on_radioButtonBoth_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -113,6 +124,7 @@ private:
     bool ExtratbyPoints;
     ProcessOnThread *Proceso;
     int minBarHaar, maxBarHaar, valueBarHaar;
+    QList<QImage> LRois;
 };
 
 #endif // MAINWINDOW_H

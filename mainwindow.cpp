@@ -40,6 +40,10 @@ MainWindow::MainWindow(QWidget *parent) :
     minBarHaar = 0; maxBarHaar=100;
     valueBarHaar = 0;
     ui->pushButtonOK2->setVisible(false);
+    ui->pushButtonROIOK2->setVisible(false);
+    ui->pushButtonClearRois->setVisible(false);
+    ui->labelRegSave2->setVisible(false);
+    ui->spinBoxINFOTXT2->setVisible(false);
 }
 
 MainWindow::~MainWindow()
@@ -514,8 +518,10 @@ void MainWindow::ResizeVerticalSlider(int CountFrame)
     MaxFramesVideo=CountFrame-2;
     ui->labelSliderFrame->setNum(CountFrame-2);
     ui->verticalSliderVIDEO->setMaximum((CountFrame-2));
-    int valor=ui->spinBoxINFOTXT->value();
-    ui->verticalSliderVIDEO->setSliderPosition(valor);
+    ui->spinBoxINFOTXT->setMaximum(MaxFramesVideo-2);
+    ui->spinBoxINFOTXT2->setMaximum(MaxFramesVideo-2);
+    //int valor=ui->spinBoxINFOTXT->value();
+    //ui->verticalSliderVIDEO->setSliderPosition(valor);
 }
 
 void MainWindow::ChangeValueScrollBarAngle(int Value)
@@ -869,6 +875,16 @@ void MainWindow::ClickOK(void)
     QString HeightBox=ui->labelHeightBox->text();
     QString WidthBox=ui->labelWidthBox->text();
 
+    QList<QRect> boxes = LabelImagen->getBoxes();
+    if(boxes.isEmpty() && ui->radioButtonBoxPoints->isChecked()==false){
+        msgBox->setWindowTitle("Box Selection...");
+        msgBox->setText("Image Extraction.                                        ");
+        msgBox->setIcon(QMessageBox::Warning);
+        msgBox->setInformativeText("Select a region to extract");
+        msgBox->show();
+        return;
+    }
+
     if(PosXini=="0" && PosYini=="0" && HeightBox=="0" && WidthBox=="0" && ui->radioButtonBoxPoints->isChecked()==false){
         msgBox->setWindowTitle("Box Selection...");
         msgBox->setText("Image Extraction.                                        ");
@@ -887,9 +903,17 @@ void MainWindow::ClickOK(void)
         return;
     }
 
-    if(ui->radioButtonPositive->isChecked()){
+    if(ui->radioButtonPositive->isChecked() || ui->radioButtonBoth->isChecked()){
         QString ImageLocationFromUser = ui->lineEditImageDirOutput->text();
         QString ImageLocationFromUser2 = ui->lineEditImageDirOutput->text();
+        if(ui->radioButtonBoth->isChecked() && DirImagesNeg.size()==0){
+            msgBox->setWindowTitle("Configuration Paths");
+            msgBox->setText("File Negative location.                                        ");
+            msgBox->setIcon(QMessageBox::Warning);
+            msgBox->setInformativeText("Negative Dir Image location Bad");
+            msgBox->show();
+            return;
+        }
         if(DirImages.size()!=0){
             if(DirFileTXT.size()!=0){
 #ifdef Q_OS_WIN32
@@ -914,7 +938,12 @@ void MainWindow::ClickOK(void)
                                 QFile file(DirFileTXTPosHaar);
                                 file.open(QIODevice::ReadWrite |QIODevice::Append | QIODevice::Text);
                                 QTextStream outStream(&file);
-                                outStream <<ImageLocationFromUser<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox<<"\n";
+                                outStream <<ImageLocationFromUser<<" "<<QString::number(boxes.size());
+                                foreach (QRect val, boxes) {
+                                    outStream <<" "<<val.x()<<" "<<val.y()<<" "<<val.width()<<" "<<val.height();
+                                }
+                                outStream <<"\n";
+                                //outStream <<ImageLocationFromUser<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox<<"\n";
                                 file.close();
                            }else{
                                if(ui->checkBoxImageEXtractOnly->isChecked()){
@@ -923,6 +952,11 @@ void MainWindow::ClickOK(void)
                                    ImagePoly.save(ImageLocalization,"png");
                                }
                            }
+                           if(ui->radioButtonBoth->isChecked()){
+                               NameNeg="/"+NameNeg+FramePos+".png";
+                               ImageLocalization=DirImagesNeg+NameNeg;
+                               regionBlacks(boxes, ImageLocalization);
+                           }
                        }
                        if(ui->checkBoxSVM->isChecked()){
                            ImageLocationFromUser2 = ImageLocationFromUser2 + NameSVM;
@@ -930,12 +964,23 @@ void MainWindow::ClickOK(void)
                            file.open(QIODevice::ReadWrite |QIODevice::Append | QIODevice::Text);
                            QTextStream outStream(&file);
                            if(ui->checkBoxImageEXtractOnly->isChecked()){
-                               FrameDROI.save(ImageLocalizationSVM, "png");
-                               outStream <<ImageLocationFromUser2<<"\n";
+                               int cont = 1;
+                               foreach (QImage img, LRois) {
+                                   QString Name="/SVMPos"+FramePos+"_"+QString::number(cont)+".png";
+                                   ImageLocalizationSVM=DirImages+Name;
+                                   img.save(ImageLocalizationSVM, "png");
+                                   outStream <<ImageLocalizationSVM<<"\n";
+                                   cont++;
+                               }
                            }else{
                                FrameD.save(ImageLocalizationSVM,"png");
-                               outStream <<ImageLocationFromUser2<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox<<" ";
-                               outStream <<AngleRotation<<" "<<ResizeWidth<<" "<<ResizeHeight<<"\n";
+                               outStream <<ImageLocationFromUser2<<" "<<QString::number(boxes.size());
+                               foreach (QRect val, boxes) {
+                                   outStream <<" "<<val.x()<<" "<<val.y()<<" "<<val.width()<<" "<<val.height();
+                               }
+                               outStream <<"\n";
+                               //outStream <<ImageLocationFromUser2<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox<<" ";
+                               //outStream <<AngleRotation<<" "<<ResizeWidth<<" "<<ResizeHeight<<"\n";
                                file.close();
                            }
                        }
@@ -946,6 +991,7 @@ void MainWindow::ClickOK(void)
                        msgBox->setIcon(QMessageBox::Warning);
                        msgBox->setInformativeText("Image already procees....");
                        msgBox->show();
+                       return;
                    }
             }else{
                 msgBox->setWindowTitle("Configuration Paths");
@@ -953,6 +999,7 @@ void MainWindow::ClickOK(void)
                 msgBox->setIcon(QMessageBox::Warning);
                 msgBox->setInformativeText("Postive file TXT location Bad");
                 msgBox->show();
+                return;
                 //qDebug()<<"DEBE INDICAR UN ARCHIVO .txt PARA ALMACENAR LA INFO...";
             }
         }else{
@@ -961,6 +1008,7 @@ void MainWindow::ClickOK(void)
             msgBox->setIcon(QMessageBox::Warning);
             msgBox->setInformativeText("Postive Dir Image location Bad");
             msgBox->show();
+            return;
             //qDebug()<<"DEBE INDICAR UN DIRECTORIO DONDE SE VA ALMACENAR LAS IMAGENES (POSITIVAS)...";
         }
     }
@@ -1012,6 +1060,7 @@ void MainWindow::ClickOK(void)
                 msgBox->setIcon(QMessageBox::Warning);
                 msgBox->setInformativeText("Negtive file TXT location Bad");
                 msgBox->show();
+                return;
                 //qDebug()<<"DEBE INDICAR UN ARCHIVO .txt PARA ALMACENAR LA INFO...";
             }
         }else{
@@ -1020,11 +1069,12 @@ void MainWindow::ClickOK(void)
             msgBox->setIcon(QMessageBox::Warning);
             msgBox->setInformativeText("Negative Dir Image location Bad");
             msgBox->show();
+            return;
             //qDebug()<<"DEBE INDICAR UN DIRECTORIO DONDE SE VA ALMACENAR LAS IMAGENES (NEGATIVAS)...";
         }
     }
-
-
+    LRois.clear();
+    LabelImagen->cleaBoxes();
 }
 
 void MainWindow::ChangeSpinBox(int dato)
@@ -1042,7 +1092,6 @@ void MainWindow::ChangeSpinBox(int dato)
         }
     }
 
-    ui->spinBoxINFOTXT->setValue(ValorSpin);
 
     datoAnt=dato;
 
@@ -1055,10 +1104,18 @@ void MainWindow::on_checkBoxHide_stateChanged(int arg1)
         ui->frame->setVisible(true);
         ui->frame_2->setVisible(true);
         ui->pushButtonOK2->setVisible(false);
+        ui->pushButtonROIOK2->setVisible(false);
+        ui->pushButtonClearRois->setVisible(false);
+        ui->labelRegSave2->setVisible(false);
+        ui->spinBoxINFOTXT2->setVisible(false);
     }else{
         ui->frame->setVisible(false);
         ui->frame_2->setVisible(false);
         ui->pushButtonOK2->setVisible(true);
+        ui->pushButtonROIOK2->setVisible(true);
+        ui->pushButtonClearRois->setVisible(true);
+        ui->labelRegSave2->setVisible(true);
+        ui->spinBoxINFOTXT2->setVisible(true);
     }
 }
 
@@ -1084,4 +1141,60 @@ void MainWindow::on_pushButtonLoadDirectoryFil_clicked()
     }else{
         qDebug()<<"FILENAME VACIO";
     }
+}
+
+void MainWindow::on_pushButtonROIOK_clicked()
+{
+    if(ui->labelHeightBox->text().toInt()>0 && ui->labelWidthBox->text().toInt()>0){
+        QRect ROI(ui->labelPosXi->text().toInt(),ui->labelPosYi->text().toInt(), ui->labelWidthBox->text().toInt(),ui->labelHeightBox->text().toInt());
+        LabelImagen->addBox(ROI);
+        LRois.push_back(FrameDROI);
+    }
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    LabelImagen->cleaBoxes();
+    LRois.clear();
+}
+
+void MainWindow::on_pushButtonROIOK2_clicked()
+{
+    ui->pushButtonROIOK->click();
+}
+
+void MainWindow::on_pushButtonClearRois_clicked()
+{
+    ui->pushButton->click();
+}
+
+void MainWindow::regionBlacks(QList<QRect> boxes, QString PathSave)
+{
+    QRgb value;
+    value = qRgb(0, 0, 0);
+    foreach (QRect box, boxes) {
+        int xi=box.x();
+        int yi=box.y();
+        int width = box.width() + xi;
+        int height = box.height() + yi;
+        for(int i=xi;i<width;i++){
+            for(int j=yi;j<height;j++){
+                FrameD.setPixel(i,j,value);
+            }
+        }
+    }
+    FrameD.save(PathSave, "png");
+    QFile file(DirFileTXTNegHaar);
+    file.open(QIODevice::ReadWrite |QIODevice::Append | QIODevice::Text);
+    QTextStream outStream(&file);
+    outStream <<PathSave<<"\n";
+    file.close();
+}
+
+void MainWindow::on_radioButtonBoth_clicked()
+{
+    //ui->radioButtonBoth->disconnect(ui->radioButtonBoth, SIGNAL(clicked()),this,SLOT(on_radioButtonBoth_clicked()));
+    ui->pushButtonNegativeDir->setEnabled(true);
+    ui->pushButtonPositiveDir->setEnabled(true);
+    //ui->radioButtonBoth->connect(ui->radioButtonBoth, SIGNAL(clicked()),this,SLOT(on_radioButtonBoth_clicked()));
 }
