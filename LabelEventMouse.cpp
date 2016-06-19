@@ -10,8 +10,10 @@ LabelEventMouse::LabelEventMouse(QWidget *parent):QLabel(parent)
     this->setMouseTracking(true);
 #ifdef USE_QT5
     this->setFocusPolicy(Qt::StrongFocus);
+    this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 #else
     this->setFocusPolicy(Qt::StrongFocus);
+    this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 #endif
     pintaCaja=true;
     pintaPunto=false;
@@ -46,6 +48,21 @@ void LabelEventMouse::UpdateHeightandWidthBox(int H, int W)
 void LabelEventMouse::getPointsSelects(std::vector<QPoint> &PuntosAct)
 {
     PuntosAct = PuntosCajaUser;
+}
+
+void LabelEventMouse::addBox(QRect box)
+{
+    boxes.push_back(box);
+}
+
+void LabelEventMouse::cleaBoxes(void)
+{
+    boxes.clear();
+}
+
+QList<QRect> LabelEventMouse::getBoxes(void)
+{
+    return(boxes);
 }
 
 void LabelEventMouse::mouseMoveEvent(QMouseEvent *evn)
@@ -227,6 +244,13 @@ void LabelEventMouse::paintEvent(QPaintEvent *evn)
         if(BotonLeft == false){
             pintor.setPen(Qt::red);
             pintor.drawRect(*Caja2);
+        }
+    }
+
+    if(!boxes.isEmpty()){
+        pintor.setPen(Qt::yellow);
+        foreach (QRect reg, boxes) {
+            pintor.drawRect(reg);
         }
     }
 

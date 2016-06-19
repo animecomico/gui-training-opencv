@@ -8,6 +8,7 @@
 #include <qwidget.h>
 #include <qrect.h>
 #include <qpoint.h>
+#include <QList>
 
 
 //#define ModeBoxDynamic true
@@ -21,6 +22,9 @@ public:
     void setTypeBox(unsigned char Type);
     void UpdateHeightandWidthBox(int H, int W);
     void getPointsSelects(std::vector<QPoint> &PuntosAct);
+    void addBox(QRect box);
+    void cleaBoxes(void);
+    QList<QRect> getBoxes(void);
 signals:
     void EmitRegionExtract(void);
 protected:
@@ -45,6 +49,7 @@ private:
     int HeightBox,WidthBox;
     unsigned char TypeB;
     std::vector<QPoint> PuntosCajaUser;
+    QList<QRect> boxes;
 };
 
 #endif // LABELEVENTMOUSE_H
