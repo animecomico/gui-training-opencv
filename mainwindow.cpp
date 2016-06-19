@@ -495,19 +495,19 @@ void MainWindow::ClickChecbox(int Estado)
     }else if(checkBox->objectName() == "checkBoxSVM"){
         //qDebug()<<"ChecBox SVM: "<<Estado;
         if(Estado!=0){
-            //ui->checkBoxResizeEXtract->setEnabled(true);
+            ui->checkBoxResizeEXtract->setEnabled(true);
             ui->labelResHeight->setEnabled(true);
             ui->labelResWidth->setEnabled(true);
             ui->spinBoxResHeight->setEnabled(true);
             ui->spinBoxResWidth->setEnabled(true);
-            //ui->checkBoxImageEXtractOnly->setEnabled(true);
+            ui->checkBoxImageEXtractOnly->setEnabled(true);
         }else{
-            //ui->checkBoxResizeEXtract->setEnabled(false);
+            ui->checkBoxResizeEXtract->setEnabled(false);
             ui->labelResHeight->setEnabled(false);
             ui->labelResWidth->setEnabled(false);
             ui->spinBoxResHeight->setEnabled(false);
             ui->spinBoxResWidth->setEnabled(false);
-            //ui->checkBoxImageEXtractOnly->setEnabled(false);
+            ui->checkBoxImageEXtractOnly->setEnabled(false);
         }
     }
 
@@ -1043,8 +1043,16 @@ void MainWindow::ClickOK(void)
                             file.open(QIODevice::ReadWrite |QIODevice::Append | QIODevice::Text);
                             QTextStream outStream(&file);
                             if(ui->checkBoxImageEXtractOnly->isChecked()){
-                                FrameDROI.save(ImageLocalizationSVM, "png");
-                                outStream <<ImageLocationFromUser<<"\n";
+                                //FrameDROI.save(ImageLocalizationSVM, "png");
+                                //outStream <<ImageLocationFromUser<<"\n";
+                                int cont = 1;
+                                foreach (QImage img, LRois) {
+                                    QString Name="/SVMNeg"+FramePos+"_"+QString::number(cont)+".png";
+                                    ImageLocalizationSVM=DirImagesNeg+Name;
+                                    img.save(ImageLocalizationSVM, "png");
+                                    outStream <<ImageLocalizationSVM<<"\n";
+                                    cont++;
+                                }
                             }else{
                                 FrameD.save(ImageLocalizationSVM,"png");
                                 outStream <<ImageLocationFromUser<<" "<<"1"<<" "<<PosXini<<" "<<PosYini<<" "<<WidthBox<<" "<<HeightBox<<" ";
@@ -1073,6 +1081,7 @@ void MainWindow::ClickOK(void)
             //qDebug()<<"DEBE INDICAR UN DIRECTORIO DONDE SE VA ALMACENAR LAS IMAGENES (NEGATIVAS)...";
         }
     }
+    ui->pushButtonNEXT->click();
     LRois.clear();
     LabelImagen->cleaBoxes();
 }
@@ -1197,4 +1206,30 @@ void MainWindow::on_radioButtonBoth_clicked()
     ui->pushButtonNegativeDir->setEnabled(true);
     ui->pushButtonPositiveDir->setEnabled(true);
     //ui->radioButtonBoth->connect(ui->radioButtonBoth, SIGNAL(clicked()),this,SLOT(on_radioButtonBoth_clicked()));
+}
+
+void MainWindow::on_checkBoxHaar_clicked()
+{
+    if(!ui->checkBoxHaar->isChecked()){
+        ui->checkBoxHaar->setChecked(true);
+    }
+    if(ui->checkBoxSVM->isChecked()){
+        ui->checkBoxSVM->setChecked(false);
+    }
+    if(ui->checkBoxImageEXtractOnly->isChecked()){
+        ui->checkBoxImageEXtractOnly->setChecked(false);
+    }
+}
+
+void MainWindow::on_checkBoxSVM_clicked()
+{
+    if(!ui->checkBoxSVM->isChecked()){
+        ui->checkBoxSVM->setChecked(true);
+    }
+    if(ui->checkBoxHaar->isChecked()){
+        ui->checkBoxHaar->setChecked(false);
+    }
+    if(!ui->checkBoxImageEXtractOnly->isChecked()){
+        ui->checkBoxImageEXtractOnly->setChecked(true);
+    }
 }

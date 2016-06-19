@@ -91,6 +91,10 @@ private slots:
 
     void on_radioButtonBoth_clicked();
 
+    void on_checkBoxHaar_clicked();
+
+    void on_checkBoxSVM_clicked();
+
 private:
     Ui::MainWindow *ui;
     LabelEventMouse *LabelImagen;
