@@ -191,8 +191,9 @@ void VIDEOLOADOCVTHREAD::run()
     GetPosFrame=0;
     if(isVideo){
         LoadVideo->release();
-    }
 
+    }
+    ImageListFiles.clear();
 
     qDebug()<<"THREAD VIDEO TERMINADO...";
 }
